@@ -33,15 +33,18 @@ body{font-family:-apple-system,"SF Pro Text",sans-serif;background:var(--bg);col
 .stat{background:var(--surface);border-radius:var(--radius-sm);padding:10px;text-align:center;border:1px solid var(--border)}
 .stat-num{font-size:20px;font-weight:600}
 .stat-lbl{font-size:10px;color:var(--text2)}
-.filters{padding:0 16px 10px;display:flex;gap:6px;overflow-x:auto}
+.filters{padding:0 16px 10px;display:flex;gap:6px;overflow-x:auto;align-items:center}
 .filter-chip{white-space:nowrap;font-size:13px;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer}
 .filter-chip.active{background:var(--text);color:var(--bg)}
+.select-actions{display:flex;gap:8px;margin-left:auto}
+.select-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer}
 .list{padding:0 16px 80px}
 .item{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:10px;padding:14px}
-.item-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+.item-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.item-check{width:24px;flex-shrink:0;margin-top:2px}
 .item-details{flex:1}
 .item-desc{font-weight:600}
-.item-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.item-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:12px;align-items:center}
 .badge{font-size:11px;padding:2px 8px;border-radius:20px}
 .badge-critical{background:#fef2f2;color:#b91c1c}
 .badge-high{background:#fff7ed;color:#c2410c}
@@ -51,8 +54,8 @@ body{font-family:-apple-system,"SF Pro Text",sans-serif;background:var(--bg);col
 .badge-progress{background:#fffbeb;color:#92400e}
 .badge-closed{background:#f0fdf4;color:#166534}
 .badge-void{background:#eeede9;color:#6b6860}
-.item-note{font-size:12px;color:var(--text2);margin-top:6px;background:var(--surface2);padding:6px;border-radius:8px}
-.photo-thumb{width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);cursor:pointer}
+.date-info{font-size:10px;color:var(--text2);margin-left:auto}
+.photo-thumb{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);cursor:pointer}
 .photo-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .status-pri-select{display:flex;gap:8px;align-items:center}
 select.small-select{padding:4px 8px;border-radius:16px;background:var(--surface2);border:1px solid var(--border2);font-size:12px}
@@ -71,33 +74,39 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .submit-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer;margin-top:8px}
 .export-btn{width:100%;background:var(--accent);color:#fff;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer;display:flex;gap:8px;justify-content:center}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 20px;border-radius:40px;font-size:14px;z-index:1000;opacity:0;transition:opacity 0.3s;pointer-events:none}
 #preview-modal{display:none;position:fixed;inset:0;background:var(--bg);z-index:900;flex-direction:column}
 #preview-modal.open{display:flex}
 .preview-header{background:var(--surface);padding:16px;display:flex;justify-content:space-between}
 .preview-body{flex:1;overflow:auto;padding:20px;background:#525659}
 #pdf-content{background:#fff;width:100%;max-width:297mm;margin:0 auto;box-sizing:border-box}
-.pdf-page{background:#fff;color:#000;padding:15mm 20mm;font-family:Arial,sans-serif;page-break-after:always}
-.pdf-header-logo{text-align:left;margin-bottom:15px;border-bottom:2px solid #333;padding-bottom:10px}
-.pdf-logo-img{height:70px;width:auto;object-fit:contain}
-.pdf-title{text-align:center;font-weight:bold;background:#eef2ff;padding:6px;margin:10px 0;color:#000}
-.pdf-info-grid{display:flex;justify-content:space-between;font-size:10px;border:1px solid #ccc;padding:8px;margin-bottom:15px;color:#000}
-.pdf-legend-table{margin:15px 0;width:100%;border-collapse:collapse;font-size:9px}
-.pdf-legend-table td{padding:5px 8px;border:1px solid #000;text-align:center;font-weight:bold}
-.pdf-table{width:100%;border-collapse:collapse;font-size:8.5px;color:#000;table-layout:fixed;page-break-inside:avoid}
-.pdf-table th,.pdf-table td{border:1px solid #000;padding:6px;vertical-align:top;break-inside:avoid;page-break-inside:avoid}
+.pdf-page{background:#fff;color:#000;padding:6mm 12mm 8mm 12mm;font-family:Arial,sans-serif;page-break-after:always;break-after:page}
+.pdf-page:last-child{page-break-after:auto}
+.pdf-header-logo{text-align:left;margin-bottom:8px;border-bottom:2px solid #333;padding-bottom:6px}
+.pdf-logo-img{height:55px;width:auto;object-fit:contain}
+.pdf-title{text-align:center;font-weight:bold;background:#eef2ff;padding:4px;margin:6px 0;color:#000;font-size:13px}
+.pdf-info-grid{display:flex;justify-content:space-between;font-size:8.5px;border:1px solid #ccc;padding:5px;margin-bottom:8px;color:#000}
+.pdf-legend-container{margin:8px 0;text-align:center}
+.pdf-legend-container strong{font-size:8.5px;display:block;margin-bottom:3px}
+.pdf-legend-table{width:100%;border-collapse:collapse;font-size:7.5px}
+.pdf-legend-table td{padding:3px 3px;border:1px solid #000;text-align:center;font-weight:bold;width:20%}
+.pdf-table{width:100%;border-collapse:collapse;font-size:7.5px;color:#000;table-layout:fixed}
+.pdf-table th,.pdf-table td{border:1px solid #000;padding:4px;vertical-align:top;break-inside:avoid;page-break-inside:avoid}
+.pdf-table td{word-wrap:break-word;white-space:normal}
+.pdf-table td:nth-child(4){white-space:nowrap} /* Priority column - no wrap */
 .pdf-table th{background:#e5e7eb;text-align:center}
-.pdf-img{max-width:70px;max-height:55px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto}
-.pdf-footer{text-align:center;font-size:8px;border-top:1px solid #ccc;padding-top:8px;margin-top:20px;color:#000}
+.pdf-img{width:100%;height:auto;max-height:70px;object-fit:contain;display:block;margin:0 auto}
+.pdf-footer{text-align:center;font-size:6.5px;border-top:1px solid #ccc;padding-top:5px;margin-top:12px;color:#000}
 .empty{text-align:center;padding:40px;color:var(--text2)}
 </style>
 </head>
 <body>
 
-<div id="gate">
+<div id="gate" style="display:flex">
   <div class="gate-box">
     <div class="gate-logo">🔨</div>
     <h2 class="gate-title">TSDCI QA/QC Punchlist</h2>
-    <p class="gate-sub">Enter the project password</p>
+    <p class="gate-sub">Enter project password</p>
     <input id="gate-password" class="gate-input" type="password" placeholder="Password" />
     <button class="gate-btn" onclick="checkPassword()">Unlock</button>
     <p id="gate-err" class="gate-err" style="color:var(--red);margin-top:10px"></p>
@@ -107,10 +116,23 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
 <div id="main-app" style="display:none">
 <div class="topbar"><div class="topbar-inner"><div class="app-title"><span>📋 Punchlist</span><div class="sync-dot" id="sync-dot"></div></div><div><button class="icon-btn" onclick="openExport()">⬆</button></div></div></div>
 <div class="stats-row"><div class="stat"><div class="stat-num" id="cnt-open">0</div><div class="stat-lbl">Open</div></div><div class="stat"><div class="stat-num" id="cnt-high">0</div><div class="stat-lbl">Critical (H)</div></div><div class="stat"><div class="stat-num" id="cnt-prog">0</div><div class="stat-lbl">In Progress</div></div><div class="stat"><div class="stat-num" id="cnt-done">0</div><div class="stat-lbl">Closed</div></div></div>
-<div class="filters" id="filters-container"><div class="filter-chip active" data-filter="all">All</div><div class="filter-chip" data-filter="OPEN">Open</div><div class="filter-chip" data-filter="IN PROGRESS">In Progress</div><div class="filter-chip" data-filter="CLOSED">Closed</div><div class="filter-chip" data-filter="VOIDED">Voided</div></div>
+<div class="filters" id="filters-container">
+  <div class="filter-chip active" data-filter="all">All</div>
+  <div class="filter-chip" data-filter="OPEN">Open</div>
+  <div class="filter-chip" data-filter="IN PROGRESS">In Progress</div>
+  <div class="filter-chip" data-filter="CLOSED">Closed</div>
+  <div class="filter-chip" data-filter="VOIDED">Voided</div>
+  <div class="select-actions">
+    <button class="select-btn" onclick="toggleSelectAll()">☐ Select All</button>
+    <button class="select-btn" onclick="deleteSelected()">🗑 Delete Selected</button>
+  </div>
+</div>
 <div class="list" id="list"><div class="empty">Loading items...</div></div>
 <button class="fab" onclick="openAdd()">+</button>
 
+<div class="toast" id="toastMsg">✓ Item added</div>
+
+<!-- ADD SHEET -->
 <div class="sheet-backdrop" id="add-backdrop" onclick="closeAdd()"></div>
 <div class="sheet" id="add-sheet"><div class="sheet-handle"></div><div class="sheet-title">➕ New Punch Item</div>
 <div class="field"><label>Description *</label><input type="text" id="f-desc" placeholder="e.g., Cracked tile" /></div>
@@ -121,6 +143,7 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
 <div class="field"><label>Remarks (Optional)</label><textarea id="f-notes" rows="2"></textarea></div>
 <button class="submit-btn" onclick="addItem()">Create Item</button></div>
 
+<!-- EXPORT SHEET -->
 <div class="sheet-backdrop" id="exp-backdrop" onclick="closeExport()"></div>
 <div class="sheet" id="exp-sheet"><div class="sheet-handle"></div><div class="sheet-title">📄 Export to PDF</div>
 <div class="field"><label>Project name</label><input type="text" id="exp-proj" value="A Proposed 2-Unit 3-Storey Dormitory Building" /></div>
@@ -133,6 +156,7 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
 </div>
 
 <script>
+// ========== FIREBASE CONFIG ==========
 const firebaseConfig = {
   apiKey: "AIzaSyD4PgBtM4AEmnvMQ7sqSVwWTXzAJgc_IWI",
   authDomain: "punchlist-57de5.firebaseapp.com",
@@ -151,6 +175,20 @@ const FIXED_EMAIL = "kotendorm@phase5.com";
 let punchItems = [];
 let currentFilter = "all";
 let dbRef = null;
+let selectedItemIds = new Set();
+
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    dbRef = db.ref('punchlist');
+    initRealtimeSync();
+  } else {
+    document.getElementById('gate').style.display = 'flex';
+    document.getElementById('main-app').style.display = 'none';
+  }
+});
 
 async function checkPassword() {
   const pwd = document.getElementById('gate-password').value;
@@ -158,15 +196,10 @@ async function checkPassword() {
   if (!pwd) { err.innerText = "Enter password"; return; }
   err.innerText = "Verifying...";
   try {
-    const cred = await auth.signInWithEmailAndPassword(FIXED_EMAIL, pwd);
-    if (cred.user) {
-      document.getElementById('gate').style.display = 'none';
-      document.getElementById('main-app').style.display = 'block';
-      dbRef = db.ref('punchlist');
-      initRealtimeSync();
-    }
+    await auth.signInWithEmailAndPassword(FIXED_EMAIL, pwd);
+    err.innerText = "";
   } catch (e) {
-    if (e.code === 'auth/user-not-found') err.innerText = "User not found. Contact admin.";
+    if (e.code === 'auth/user-not-found') err.innerText = "User not found.";
     else if (e.code === 'auth/wrong-password') err.innerText = "Wrong password.";
     else err.innerText = e.message;
   }
@@ -178,6 +211,7 @@ function initRealtimeSync() {
   dbRef.on('value', snap => {
     const data = snap.val();
     punchItems = data ? Object.entries(data).map(([k,v]) => ({...v, firebaseKey: k})) : [];
+    selectedItemIds.clear();
     renderAll();
     dot.classList.remove('syncing');
     dot.classList.add('online');
@@ -186,7 +220,11 @@ function initRealtimeSync() {
 
 async function saveItem(item) { await dbRef.push().set(item); }
 async function updateItem(key, updates) { await dbRef.child(key).update(updates); }
-async function deleteItem(key) { await dbRef.child(key).remove(); }
+async function deleteMultipleItems(keys) {
+  const updates = {};
+  keys.forEach(k => { updates[k] = null; });
+  await dbRef.update(updates);
+}
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -195,6 +233,20 @@ function fileToBase64(file) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+function formatDate(timestamp) {
+  if (!timestamp) return '—';
+  const d = new Date(timestamp);
+  return d.toLocaleDateString('en-PH');
+}
+function nowTimestamp() { return Date.now(); }
+
+function showToast(msg) {
+  const toast = document.getElementById('toastMsg');
+  toast.innerText = msg;
+  toast.style.opacity = '1';
+  setTimeout(() => { toast.style.opacity = '0'; }, 2000);
 }
 
 function renderAll() {
@@ -211,36 +263,48 @@ function renderAll() {
   if (currentFilter !== 'all') filtered = punchItems.filter(i => i.status === currentFilter);
   const container = document.getElementById('list');
   if (!filtered.length) { container.innerHTML = '<div class="empty">📋 No items</div>'; return; }
+
   container.innerHTML = '';
   filtered.forEach(item => {
+    const isChecked = selectedItemIds.has(item.firebaseKey);
     const statusClass = item.status === 'OPEN' ? 'badge-open' : (item.status === 'IN PROGRESS' ? 'badge-progress' : (item.status === 'CLOSED' ? 'badge-closed' : 'badge-void'));
     const priorityClass = item.priority === 'H' ? 'badge-critical' : (item.priority === 'M' ? 'badge-medium' : 'badge-low');
     const priorityLabel = item.priority === 'H' ? 'HIGH' : (item.priority === 'M' ? 'MEDIUM' : 'LOW');
     const inspThumb = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb">📷</div>`;
     const closeThumb = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb">🔒</div>`;
+    const openedDate = formatDate(item.createdAt);
+    const closedDate = item.closedAt ? formatDate(item.closedAt) : '—';
+    
     const div = document.createElement('div');
     div.className = 'item';
     div.innerHTML = `
       <div class="item-row">
+        <div class="item-check">
+          <input type="checkbox" data-key="${item.firebaseKey}" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${item.firebaseKey}', this.checked)">
+        </div>
         <div class="item-details">
           <div class="item-desc">${escapeHtml(item.desc)}</div>
-          <div class="item-meta"><span class="badge badge-gray">📍 ${escapeHtml(item.location)}</span><span class="badge ${priorityClass}">⚠️ ${priorityLabel}</span><span class="badge ${statusClass}">${item.status}</span></div>
+          <div class="item-meta">
+            <span class="badge badge-gray">📍 ${escapeHtml(item.location)}</span>
+            <span class="badge ${priorityClass}">⚠️ ${priorityLabel}</span>
+            <span class="badge ${statusClass}">${item.status}</span>
+            <span class="date-info">📅 Opened: ${openedDate} | Closed: ${closedDate}</span>
+          </div>
           ${item.remarks ? `<div class="item-note">📝 ${escapeHtml(item.remarks)}</div>` : ''}
         </div>
         <div class="status-pri-select">
-          <select class="small-select" data-key="${item.firebaseKey}" data-field="priority" onchange="updateField(this,'priority')">
+          <select class="small-select" data-key="${item.firebaseKey}" onchange="updatePriority(this)">
             <option value="H" ${item.priority==='H'?'selected':''}>🔴 High</option>
             <option value="M" ${item.priority==='M'?'selected':''}>🟡 Medium</option>
             <option value="L" ${item.priority==='L'?'selected':''}>🟢 Low</option>
           </select>
-          <select class="small-select" data-key="${item.firebaseKey}" data-field="status" onchange="updateStatusWithCloseout(this)">
+          <select class="small-select" data-key="${item.firebaseKey}" onchange="updateStatus(this)">
             <option value="OPEN" ${item.status==='OPEN'?'selected':''}>OPEN</option>
             <option value="IN PROGRESS" ${item.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option>
             <option value="FOR VERIFICATION" ${item.status==='FOR VERIFICATION'?'selected':''}>FOR VERIFICATION</option>
             <option value="CLOSED" ${item.status==='CLOSED'?'selected':''}>CLOSED</option>
             <option value="VOIDED" ${item.status==='VOIDED'?'selected':''}>VOIDED</option>
           </select>
-          <button class="delete-btn" onclick="confirmDelete('${item.firebaseKey}')">🗑 Delete</button>
         </div>
       </div>
       <div class="photo-strip">
@@ -252,31 +316,66 @@ function renderAll() {
     `;
     container.appendChild(div);
   });
+  updateSelectAllButtonUI();
 }
 
 function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 
-async function updateField(sel, field) { await updateItem(sel.dataset.key, { [field]: sel.value }); }
+function toggleSelect(key, checked) {
+  if (checked) selectedItemIds.add(key);
+  else selectedItemIds.delete(key);
+  updateSelectAllButtonUI();
+}
+function toggleSelectAll() {
+  let filtered = punchItems;
+  if (currentFilter !== 'all') filtered = punchItems.filter(i => i.status === currentFilter);
+  const allSelected = filtered.length > 0 && filtered.every(i => selectedItemIds.has(i.firebaseKey));
+  if (allSelected) {
+    filtered.forEach(i => selectedItemIds.delete(i.firebaseKey));
+  } else {
+    filtered.forEach(i => selectedItemIds.add(i.firebaseKey));
+  }
+  renderAll();
+}
+function updateSelectAllButtonUI() {
+  const btn = document.querySelector('.select-btn:first-child');
+  if (!btn) return;
+  let filtered = punchItems;
+  if (currentFilter !== 'all') filtered = punchItems.filter(i => i.status === currentFilter);
+  const allSelected = filtered.length > 0 && filtered.every(i => selectedItemIds.has(i.firebaseKey));
+  btn.innerText = allSelected ? '☑ Deselect All' : '☐ Select All';
+}
+async function deleteSelected() {
+  const toDelete = Array.from(selectedItemIds);
+  if (toDelete.length === 0) { alert("No items selected."); return; }
+  if (confirm(`Delete ${toDelete.length} selected item(s) permanently?`)) {
+    await deleteMultipleItems(toDelete);
+    selectedItemIds.clear();
+  }
+}
 
-async function updateStatusWithCloseout(sel) {
-  const key = sel.dataset.key;
-  const newStatus = sel.value;
+async function updatePriority(selectEl) {
+  const key = selectEl.dataset.key;
+  await updateItem(key, { priority: selectEl.value });
+}
+async function updateStatus(selectEl) {
+  const key = selectEl.dataset.key;
+  const newStatus = selectEl.value;
   const item = punchItems.find(i => i.firebaseKey === key);
   if (!item) return;
   if (newStatus === 'CLOSED' && (!item.closeoutPhoto || item.closeoutPhoto === '')) {
     alert("❌ Close-out photo required to mark CLOSED.");
-    sel.value = item.status;
+    renderAll();
     return;
   }
+  let updates = { status: newStatus };
   if (newStatus === 'CLOSED' && item.status !== 'CLOSED') {
     const remark = prompt("Closing remarks (optional):", item.remarks || "");
-    if (remark !== null) await updateItem(key, { remarks: remark, status: newStatus });
-    else await updateItem(key, { status: newStatus });
-  } else {
-    await updateItem(key, { status: newStatus });
+    if (remark !== null) updates.remarks = remark;
+    updates.closedAt = nowTimestamp();
   }
+  await updateItem(key, updates);
 }
-
 async function uploadCloseout(key) {
   const input = document.createElement('input');
   input.type = 'file';
@@ -289,7 +388,6 @@ async function uploadCloseout(key) {
   };
   input.click();
 }
-
 async function editRemarks(key) {
   const item = punchItems.find(i => i.firebaseKey === key);
   if (item) {
@@ -297,13 +395,6 @@ async function editRemarks(key) {
     if (newRem !== null) await updateItem(key, { remarks: newRem });
   }
 }
-
-async function confirmDelete(key) {
-  if (confirm("⚠️ Permanently delete this item? This cannot be undone.")) {
-    await deleteItem(key);
-  }
-}
-
 async function addItem() {
   const desc = document.getElementById('f-desc').value.trim();
   const loc = document.getElementById('f-loc').value.trim();
@@ -311,12 +402,13 @@ async function addItem() {
   const initStatus = document.getElementById('f-status').value;
   const remarks = document.getElementById('f-notes').value.trim();
   const photo = document.getElementById('f-photo-in').files[0];
-  if (!desc || !loc || !photo) { alert("Description, location, and inspection photo are required."); return; }
+  if (!desc || !loc || !photo) { alert("Description, location, and inspection photo required."); return; }
   const inspBase64 = await fileToBase64(photo);
+  const now = nowTimestamp();
   await saveItem({
     desc, location: loc, priority: pri, status: initStatus, remarks,
     inspectionPhoto: inspBase64, closeoutPhoto: "",
-    createdAt: firebase.database.ServerValue.TIMESTAMP
+    createdAt: now, closedAt: null
   });
   closeAdd();
   document.getElementById('f-desc').value = '';
@@ -324,101 +416,106 @@ async function addItem() {
   document.getElementById('f-notes').value = '';
   document.getElementById('f-photo-in').value = '';
   document.getElementById('photo-in-preview').innerHTML = '';
+  showToast('✓ Punch item added successfully');
 }
 
-// PDF generation with A4 landscape, column widths, legend table, and page break avoidance
+// ---------- PDF Generation with adjusted column widths and text wrap ----------
 const LOGO_URL = "https://raw.githubusercontent.com/engrjai-max/engrjai-max.github.io/main/logo.png";
 
-function generatePDFContent() {
+function generatePreviewForItems(itemsToExport) {
   const inspDate = document.getElementById('exp-date').value;
   if (!inspDate) { alert("Please select Inspection Date."); return null; }
-  let rows = '';
-  punchItems.forEach((item, idx) => {
-    const inspImg = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
-    const closeImg = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
-    rows += `<tr style="page-break-inside:avoid; break-inside:avoid;">
-      <td style="text-align:center; width:5%;">${idx+1}</td>
-      <td style="width:14%;">${escapeHtml(item.location)}</td>
-      <td style="width:19%;">${escapeHtml(item.desc)}</td>
-      <td style="text-align:center; width:6%;">${item.priority}</td>
-      <td style="text-align:center; width:15%;">${inspImg}</td>
-      <td style="text-align:center; width:15%;">${closeImg}</td>
-      <td style="text-align:center; width:10%;">${item.status}</td>
-      <td style="width:16%;">${escapeHtml(item.remarks||'')}</td>
-    </tr>`;
-  });
-  // Legend table with background colors
-  const legendHtml = `
-    <table class="pdf-legend-table" style="width:100%; margin:15px 0;">
-      <tr>
-        <td style="background-color:#22c55e; color:#000; font-weight:bold;">OPEN</td>
-        <td style="background-color:#eab308; color:#000; font-weight:bold;">IN PROGRESS</td>
-        <td style="background-color:#3b82f6; color:#fff; font-weight:bold;">FOR VERIFICATION</td>
-        <td style="background-color:#d946ef; color:#fff; font-weight:bold;">CLOSED</td>
-        <td style="background-color:#9ca3af; color:#000; font-weight:bold;">VOIDED</td>
-      </tr>
-    </table>
-  `;
-  return `
-    <div class="pdf-page">
-      <div class="pdf-header-logo">
-        <img src="${LOGO_URL}" class="pdf-logo-img" onerror="this.style.display='none'">
-      </div>
-      <div class="pdf-title">QA/QC PUNCHLIST TRACKING FORM</div>
-      <div class="pdf-info-grid">
-        <div><strong>Project:</strong> ${escapeHtml(document.getElementById('exp-proj').value)}<br><strong>Location:</strong> ${escapeHtml(document.getElementById('exp-loc').value)}</div>
-        <div><strong>Inspection Date:</strong> ${inspDate}</div>
-      </div>
-      ${legendHtml}
-      <table class="pdf-table" style="width:100%; table-layout:fixed;">
-        <thead>
-          <tr>
-            <th style="width:5%">#</th>
-            <th style="width:14%">LOCATION</th>
-            <th style="width:19%">DESCRIPTION</th>
-            <th style="width:6%">PRI</th>
-            <th style="width:15%">INSPECTION PHOTO</th>
-            <th style="width:15%">CLOSE-OUT PHOTO</th>
-            <th style="width:10%">STATUS</th>
-            <th style="width:16%">REMARKS</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
+  if (!itemsToExport.length) { alert("No items to export."); return null; }
+  
+  const rowsPerPage = 14;
+  const pages = [];
+  for (let i = 0; i < itemsToExport.length; i += rowsPerPage) {
+    pages.push(itemsToExport.slice(i, i + rowsPerPage));
+  }
+  
+  let allPagesHtml = '';
+  const projectName = escapeHtml(document.getElementById('exp-proj').value);
+  const projectLoc = escapeHtml(document.getElementById('exp-loc').value);
+  
+  pages.forEach((pageItems, pageIdx) => {
+    let rowsHtml = '';
+    let startNum = pageIdx * rowsPerPage + 1;
+    pageItems.forEach((item, idx) => {
+      const rowNum = startNum + idx;
+      const inspImg = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
+      const closeImg = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
+      const opened = formatDate(item.createdAt);
+      const closed = item.closedAt ? formatDate(item.closedAt) : '—';
+      rowsHtml += `<tr style="break-inside:avoid; page-break-inside:avoid;">
+        <td style="text-align:center; width:3%;">${rowNum}</td>
+        <td style="width:14%;">${escapeHtml(item.location)}</td>
+        <td style="width:20%;">${escapeHtml(item.desc)}</td>
+        <td style="text-align:center; width:4%; white-space:nowrap;">${item.priority}</td>
+        <td style="text-align:center; width:17%;">${inspImg}</td>
+        <td style="text-align:center; width:17%;">${closeImg}</td>
+        <td style="text-align:center; width:6%;">${item.status}</td>
+        <td style="width:6%;">${opened}<br>${closed}</td>
+        <td style="width:13%;">${escapeHtml(item.remarks||'')}</td>
+      </tr>`;
+    });
+    
+    const legendHtml = pageIdx === 0 ? `
+      <div class="pdf-legend-container">
+        <strong>Status Legend:</strong>
+        <table class="pdf-legend-table">
+          <tr><td style="background:#22c55e;">OPEN</td><td style="background:#eab308;">IN PROGRESS</td>
+          <td style="background:#3b82f6;color:#fff;">FOR VERIFICATION</td><td style="background:#d946ef;color:#fff;">CLOSED</td>
+          <td style="background:#9ca3af;">VOIDED</td>
+        </tr>
       </table>
-      <div class="pdf-footer">
-        <div>** For Internal Use Only **</div>
-        <div>TSDCI-TGRDC-QAQC-FORM</div>
       </div>
-    </div>
-  `;
+    ` : '';
+    
+    allPagesHtml += `
+      <div class="pdf-page">
+        <div class="pdf-header-logo"><img src="${LOGO_URL}" class="pdf-logo-img" onerror="this.style.display='none'"></div>
+        <div class="pdf-title">QA/QC PUNCHLIST TRACKING FORM</div>
+        <div class="pdf-info-grid">
+          <div><strong>Project:</strong> ${projectName}<br><strong>Location:</strong> ${projectLoc}</div>
+          <div><strong>Inspection Date:</strong> ${inspDate}</div>
+        </div>
+        ${legendHtml}
+        <table class="pdf-table" style="width:100%; table-layout:fixed;">
+          <thead>
+            <tr><th style="width:3%">#</th><th style="width:14%">LOCATION</th><th style="width:20%">DESCRIPTION</th>
+            <th style="width:4%">PRI</th><th style="width:17%">INSPECTION PHOTO</th><th style="width:17%">CLOSE-OUT PHOTO</th>
+            <th style="width:6%">STATUS</th><th style="width:6%">DATES</th><th style="width:13%">REMARKS</th></tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+        <div class="pdf-footer"><div>** For Internal Use Only **</div><div>TSDCI-TGRDC-QAQC-FORM</div></div>
+      </div>
+    `;
+  });
+  return allPagesHtml;
 }
 
 async function generatePreview() {
-  const htmlContent = generatePDFContent();
-  if (!htmlContent) return;
+  const html = generatePreviewForItems(punchItems);
+  if (!html) return;
   closeExport();
-  document.getElementById('pdf-content').innerHTML = htmlContent;
+  document.getElementById('pdf-content').innerHTML = html;
   document.getElementById('preview-modal').classList.add('open');
 }
 
 function downloadPDF() {
   const element = document.getElementById('pdf-content');
-  if (!element.innerHTML.trim()) {
-    alert("Generate preview first.");
-    return;
-  }
+  if (!element.innerHTML.trim()) { alert("Generate preview first."); return; }
   const btn = document.querySelector('#preview-modal .generate');
   btn.innerText = "⏳ Generating...";
   btn.disabled = true;
   const opt = {
-    margin: [10, 10, 10, 10],
+    margin: [5, 8, 5, 8],
     filename: `Punchlist_${Date.now()}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, logging: false },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-    pagebreak: { mode: ['css', 'legacy'], before: '.pdf-page' }
+    pagebreak: { mode: ['css', 'legacy'] }
   };
   html2pdf().set(opt).from(element).save()
     .then(() => { btn.innerText = "Download PDF"; btn.disabled = false; closePreview(); })
@@ -437,6 +534,7 @@ function initFilters() {
       currentFilter = chip.dataset.filter;
       document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
+      selectedItemIds.clear();
       renderAll();
     });
   });
@@ -456,11 +554,13 @@ window.addItem = addItem;
 window.openAdd = openAdd; window.closeAdd = closeAdd;
 window.openExport = openExport; window.closeExport = closeExport;
 window.generatePreview = generatePreview; window.downloadPDF = downloadPDF; window.closePreview = closePreview;
-window.updateField = updateField;
-window.updateStatusWithCloseout = updateStatusWithCloseout;
+window.updatePriority = updatePriority;
+window.updateStatus = updateStatus;
 window.uploadCloseout = uploadCloseout;
 window.editRemarks = editRemarks;
-window.confirmDelete = confirmDelete;
+window.toggleSelect = toggleSelect;
+window.toggleSelectAll = toggleSelectAll;
+window.deleteSelected = deleteSelected;
 initFilters();
 </script>
 </body>
