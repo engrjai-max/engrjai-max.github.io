@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-/* ========== STYLES (compact & responsive) ========== */
+/* ========== STYLES ========== */
 :root{--bg:#f5f4f0;--surface:#fff;--surface2:#eeede9;--border:rgba(0,0,0,.10);--border2:rgba(0,0,0,.18);--text:#1a1917;--text2:#6b6860;--accent:#1d4ed8;--red:#b91c1c;--green:#166534;--radius:12px;--radius-sm:8px}
 @media(prefers-color-scheme:dark){:root{--bg:#111110;--surface:#1c1c1a;--surface2:#252523;--border:rgba(255,255,255,.08);--text:#f0efe9;--text2:#a09e99;--accent:#60a5fa;--red:#fca5a5;--green:#86efac}}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -59,6 +59,7 @@ body{font-family:-apple-system,"SF Pro Text",sans-serif;background:var(--bg);col
 .status-pri-select{display:flex;gap:8px;align-items:center}
 select.small-select{padding:4px 8px;border-radius:16px;background:var(--surface2);border:1px solid var(--border2);font-size:12px}
 .upload-btn-small{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer}
+.delete-btn{background:#fee2e2;border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#b91c1c}
 .fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--text);color:var(--bg);border:none;font-size:28px;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;z-index:200}
 .sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;opacity:0;transition:opacity .25s}
 .sheet-backdrop.open{display:block;opacity:1}
@@ -76,26 +77,27 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
 #preview-modal.open{display:flex}
 .preview-header{background:var(--surface);padding:16px;display:flex;justify-content:space-between}
 .preview-body{flex:1;overflow:auto;padding:20px;background:#525659}
-#pdf-content{background:#fff;width:297mm;min-height:210mm;padding:15mm 20mm;margin:auto;font-family:Arial,sans-serif}
-.pdf-header{text-align:center;margin-bottom:15px;border-bottom:2px solid #333;padding-bottom:10px}
-.pdf-logo-text{font-size:24px;font-weight:bold;color:#1a3a5c;letter-spacing:2px}
-.pdf-title{text-align:center;font-weight:bold;background:#eef2ff;padding:6px;margin:10px 0}
-.pdf-info-grid{display:flex;justify-content:space-between;font-size:10px;border:1px solid #ccc;padding:8px;margin-bottom:15px}
-.pdf-legend{font-size:9px;border:1px solid #ddd;padding:8px;margin-bottom:15px}
+#pdf-content{background:#fff;width:297mm;min-height:210mm;padding:15mm 20mm;margin:auto;font-family:Arial,sans-serif;color:#000}
+.pdf-header-logo{text-align:left;margin-bottom:15px;border-bottom:2px solid #333;padding-bottom:10px}
+.pdf-logo-img{height:70px;width:auto;object-fit:contain}
+.pdf-title{text-align:center;font-weight:bold;background:#eef2ff;padding:6px;margin:10px 0;color:#000}
+.pdf-info-grid{display:flex;justify-content:space-between;font-size:10px;border:1px solid #ccc;padding:8px;margin-bottom:15px;color:#000}
+.pdf-legend{font-size:9px;border:1px solid #ddd;padding:8px;margin-bottom:15px;color:#000}
 .legend-open{display:inline-block;width:12px;height:12px;background:#22c55e;margin-right:4px}
 .legend-progress{background:#eab308}
 .legend-closed{background:#d946ef}
 .legend-void{background:#9ca3af}
-.pdf-table{width:100%;border-collapse:collapse;font-size:8.5px}
-.pdf-table th,.pdf-table td{border:1px solid #000;padding:5px}
-.pdf-img{max-width:60px;max-height:45px}
-.pdf-footer{text-align:center;font-size:8px;border-top:1px solid #ccc;padding-top:8px;margin-top:20px}
+.pdf-table{width:100%;border-collapse:collapse;font-size:8.5px;color:#000}
+.pdf-table th,.pdf-table td{border:1px solid #000;padding:5px;vertical-align:top}
+.pdf-table th{background:#e5e7eb}
+.pdf-img{max-width:60px;max-height:50px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto}
+.pdf-footer{text-align:center;font-size:8px;border-top:1px solid #ccc;padding-top:8px;margin-top:20px;color:#000}
 .empty{text-align:center;padding:40px;color:var(--text2)}
 </style>
 </head>
 <body>
 
-<!-- Single Password Gate (no email input) -->
+<!-- Single Password Gate -->
 <div id="gate">
   <div class="gate-box">
     <div class="gate-logo">🔨</div>
@@ -107,7 +109,7 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
   </div>
 </div>
 
-<!-- MAIN APP (hidden until auth) -->
+<!-- MAIN APP -->
 <div id="main-app" style="display:none">
 <div class="topbar">
   <div class="topbar-inner">
@@ -166,309 +168,298 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
 </div>
 
 <script>
-  // ========== 🔥 FIREBASE CONFIGURATION ==========
-  // ⚠️ REPLACE THE VALUES BELOW WITH YOUR ACTUAL FIREBASE PROJECT SETTINGS ⚠️
-  const firebaseConfig = {
-    apiKey: "AIzaSyD4PgBtM4AEmnvMQ7sqSVwWTXzAJgc_IWI",            // e.g., "AIzaSyD..."
-    authDomain: "punchlist-57de5.firebaseapp.com",    // e.g., "punchlist-57de5.firebaseapp.com"
-    databaseURL: "https://punchlist-57de5-default-rtdb.asia-southeast1.firebasedatabase.app/", // your RTDB URL
-    projectId: "punchlist-57de5",      // e.g., "punchlist-57de5"
-    storageBucket: "punchlist-57de5.firebasestorage.app", // e.g., "punchlist-57de5.appspot.com"
-    appId: "1:617429806334:web:6480fea0ef2826603ec9af",
-    measurementId: "G-962XRCG4J4"               // e.g., "1:123456789:web:abc123def456"
-  };
-  
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.database();
+// ========== FIREBASE CONFIG (YOUR PROVIDED CREDENTIALS) ==========
+const firebaseConfig = {
+  apiKey: "AIzaSyD4PgBtM4AEmnvMQ7sqSVwWTXzAJgc_IWI",
+  authDomain: "punchlist-57de5.firebaseapp.com",
+  databaseURL: "https://punchlist-57de5-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "punchlist-57de5",
+  storageBucket: "punchlist-57de5.firebasestorage.app",
+  messagingSenderId: "617429806334",
+  appId: "1:617429806334:web:6480fea0ef2826603ec9af",
+  measurementId: "G-962XRCG4J4"
+};
 
-  // Fixed email address for the single shared account (no email input to user)
-  const FIXED_EMAIL = "kotendorm@phase5.com";
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
 
-  let punchItems = [];
-  let currentFilter = "all";
-  let dbRef = null;
+const FIXED_EMAIL = "kotendorm@phase5.com";
+let punchItems = [];
+let currentFilter = "all";
+let dbRef = null;
 
-  // ---------- Password verification using Firebase Auth ----------
-  async function checkPassword() {
-    const password = document.getElementById('gate-password').value;
-    if (!password) {
-      document.getElementById('gate-err').innerText = "Enter password";
-      return;
+// ---------- Password authentication ----------
+async function checkPassword() {
+  const password = document.getElementById('gate-password').value;
+  const errEl = document.getElementById('gate-err');
+  if (!password) { errEl.innerText = "Enter password"; return; }
+  errEl.innerText = "Verifying...";
+  try {
+    const userCred = await auth.signInWithEmailAndPassword(FIXED_EMAIL, password);
+    if (userCred.user) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('main-app').style.display = 'block';
+      dbRef = db.ref('punchlist');
+      initRealtimeSync();
     }
-    document.getElementById('gate-err').innerText = "Verifying...";
-    try {
-      // Sign in with the fixed email and entered password
-      const userCred = await auth.signInWithEmailAndPassword(FIXED_EMAIL, password);
-      if (userCred.user) {
-        // Success: hide gate, show main app
-        document.getElementById('gate').style.display = 'none';
-        document.getElementById('main-app').style.display = 'block';
-        // Initialize database reference (shared path for all users)
-        dbRef = db.ref('punchlist');
-        initRealtimeSync();
-      }
-    } catch (error) {
-      console.error(error);
-      let errorMsg = "Access denied. Wrong password.";
-      if (error.code === 'auth/user-not-found') {
-        errorMsg = "System account not found. Contact admin.";
-      } else if (error.code === 'auth/wrong-password') {
-        errorMsg = "Incorrect password.";
-      }
-      document.getElementById('gate-err').innerText = errorMsg;
-    }
+  } catch (error) {
+    console.error(error);
+    if (error.code === 'auth/user-not-found') errEl.innerText = "User account not found. Contact admin.";
+    else if (error.code === 'auth/wrong-password') errEl.innerText = "Wrong password. Try again.";
+    else errEl.innerText = error.message;
   }
+}
 
-  // ---------- Realtime Database sync ----------
-  function initRealtimeSync() {
-    const syncDot = document.getElementById('sync-dot');
-    syncDot.classList.add('syncing');
-    dbRef.on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        punchItems = Object.entries(data).map(([key, val]) => ({ ...val, firebaseKey: key }));
-      } else {
-        punchItems = [];
-      }
-      renderAll();
-      syncDot.classList.remove('syncing');
-      syncDot.classList.add('online');
-    }, (error) => {
-      console.error(error);
-      syncDot.classList.remove('syncing');
-      syncDot.classList.add('online');
-    });
-  }
-
-  async function saveNewItemToFB(item) {
-    const newRef = dbRef.push();
-    await newRef.set(item);
-    return newRef.key;
-  }
-
-  async function updateItemInFB(firebaseKey, updates) {
-    await dbRef.child(firebaseKey).update(updates);
-  }
-
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // ---------- Render UI ----------
-  function renderAll() {
-    const openCount = punchItems.filter(i => i.status !== 'CLOSED' && i.status !== 'VOIDED').length;
-    const highCount = punchItems.filter(i => i.priority === 'H').length;
-    const progCount = punchItems.filter(i => i.status === 'IN PROGRESS').length;
-    const doneCount = punchItems.filter(i => i.status === 'CLOSED').length;
-    document.getElementById('cnt-open').innerText = openCount;
-    document.getElementById('cnt-high').innerText = highCount;
-    document.getElementById('cnt-prog').innerText = progCount;
-    document.getElementById('cnt-done').innerText = doneCount;
-
-    let filtered = punchItems;
-    if (currentFilter !== 'all') filtered = punchItems.filter(i => i.status === currentFilter);
-    const container = document.getElementById('list');
-    if (!filtered.length) { container.innerHTML = '<div class="empty">📋 No items</div>'; return; }
-
-    container.innerHTML = '';
-    filtered.forEach(item => {
-      const statusClass = item.status === 'OPEN' ? 'badge-open' : (item.status === 'IN PROGRESS' ? 'badge-progress' : (item.status === 'CLOSED' ? 'badge-closed' : 'badge-void'));
-      const priorityClass = item.priority === 'H' ? 'badge-critical' : (item.priority === 'M' ? 'badge-medium' : 'badge-low');
-      const priorityLabel = item.priority === 'H' ? 'HIGH' : (item.priority === 'M' ? 'MEDIUM' : 'LOW');
-      const inspThumb = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb" style="display:flex;align-items:center;justify-content:center;">📷</div>`;
-      const closeThumb = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb" style="display:flex;align-items:center;justify-content:center;">🔒</div>`;
-      const div = document.createElement('div');
-      div.className = 'item';
-      div.innerHTML = `
-        <div class="item-row">
-          <div class="item-details">
-            <div class="item-desc">${escapeHtml(item.desc)}</div>
-            <div class="item-meta"><span class="badge badge-gray">📍 ${escapeHtml(item.location)}</span><span class="badge ${priorityClass}">⚠️ ${priorityLabel}</span><span class="badge ${statusClass}">${item.status}</span></div>
-            ${item.remarks ? `<div class="item-note">📝 ${escapeHtml(item.remarks)}</div>` : ''}
-          </div>
-          <div class="status-pri-select">
-            <select class="small-select" data-key="${item.firebaseKey}" data-field="priority" onchange="updateField(this, 'priority')">
-              <option value="H" ${item.priority==='H'?'selected':''}>🔴 High</option>
-              <option value="M" ${item.priority==='M'?'selected':''}>🟡 Medium</option>
-              <option value="L" ${item.priority==='L'?'selected':''}>🟢 Low</option>
-            </select>
-            <select class="small-select" data-key="${item.firebaseKey}" data-field="status" onchange="updateFieldWithCloseoutCheck(this, 'status')">
-              <option value="OPEN" ${item.status==='OPEN'?'selected':''}>OPEN</option>
-              <option value="IN PROGRESS" ${item.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option>
-              <option value="FOR VERIFICATION" ${item.status==='FOR VERIFICATION'?'selected':''}>FOR VERIFICATION</option>
-              <option value="CLOSED" ${item.status==='CLOSED'?'selected':''}>CLOSED</option>
-              <option value="VOIDED" ${item.status==='VOIDED'?'selected':''}>VOIDED</option>
-            </select>
-          </div>
-        </div>
-        <div class="photo-strip">
-          <div>📸 Insp:</div> ${inspThumb}
-          <div>🔒 Close-out:</div> ${closeThumb}
-          <button class="upload-btn-small" onclick="uploadCloseout('${item.firebaseKey}')">Upload Close-out</button>
-          <button class="upload-btn-small" onclick="editRemarks('${item.firebaseKey}')">Remarks</button>
-        </div>
-      `;
-      container.appendChild(div);
-    });
-  }
-
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-
-  async function updateField(selectEl, field) {
-    const firebaseKey = selectEl.dataset.key;
-    const newValue = selectEl.value;
-    await updateItemInFB(firebaseKey, { [field]: newValue });
-  }
-
-  async function updateFieldWithCloseoutCheck(selectEl, field) {
-    const firebaseKey = selectEl.dataset.key;
-    const newStatus = selectEl.value;
-    const item = punchItems.find(i => i.firebaseKey === firebaseKey);
-    if (!item) return;
-    if (newStatus === 'CLOSED' && (!item.closeoutPhoto || item.closeoutPhoto === '')) {
-      alert("❌ Cannot mark CLOSED without a CLOSE-OUT photo. Upload one first.");
-      selectEl.value = item.status;
-      return;
-    }
-    if (newStatus === 'CLOSED' && item.status !== 'CLOSED') {
-      const remark = prompt("Optional closing remarks:", item.remarks || "");
-      if (remark !== null) await updateItemInFB(firebaseKey, { remarks: remark, status: newStatus });
-      else await updateItemInFB(firebaseKey, { status: newStatus });
-    } else {
-      await updateItemInFB(firebaseKey, { [field]: newStatus });
-    }
-  }
-
-  async function uploadCloseout(firebaseKey) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const base64 = await fileToBase64(file);
-        await updateItemInFB(firebaseKey, { closeoutPhoto: base64 });
-      }
-    };
-    input.click();
-  }
-
-  async function editRemarks(firebaseKey) {
-    const item = punchItems.find(i => i.firebaseKey === firebaseKey);
-    if (item) {
-      const newRem = prompt("Edit remarks (optional):", item.remarks || "");
-      if (newRem !== null) await updateItemInFB(firebaseKey, { remarks: newRem });
-    }
-  }
-
-  async function addItem() {
-    const desc = document.getElementById('f-desc').value.trim();
-    const loc = document.getElementById('f-loc').value.trim();
-    const pri = document.getElementById('f-pri').value;
-    const initStatus = document.getElementById('f-status').value;
-    const remarks = document.getElementById('f-notes').value.trim();
-    const photoFile = document.getElementById('f-photo-in').files[0];
-    if (!desc) { alert("Description required"); return; }
-    if (!loc) { alert("Location required"); return; }
-    if (!photoFile) { alert("Inspection photo required"); return; }
-    const inspectionBase64 = await fileToBase64(photoFile);
-    const newItem = {
-      desc, location: loc, priority: pri, status: initStatus, remarks: remarks || "",
-      inspectionPhoto: inspectionBase64, closeoutPhoto: "",
-      createdAt: firebase.database.ServerValue.TIMESTAMP
-    };
-    await saveNewItemToFB(newItem);
-    closeAdd();
-    document.getElementById('f-desc').value = '';
-    document.getElementById('f-loc').value = '';
-    document.getElementById('f-notes').value = '';
-    document.getElementById('f-photo-in').value = '';
-    document.getElementById('photo-in-preview').innerHTML = '';
-  }
-
-  // PDF Export with text header (no image logo)
-  async function generatePreview() {
-    const inspDate = document.getElementById('exp-date').value;
-    if (!inspDate) { alert("Please select Inspection Date."); return; }
-    closeExport();
-    let rows = '';
-    punchItems.forEach((item, idx) => {
-      const inspImg = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
-      const closeImg = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
-      rows += `<tr><td style="text-align:center">${idx+1}</td><td>${escapeHtml(item.location)}</td><td>${escapeHtml(item.desc)}</td><td style="text-align:center">${item.priority}</td><td class="pdf-img-cell">${inspImg}</td><td class="pdf-img-cell">${closeImg}</td><td style="text-align:center">${item.status}</td><td>${escapeHtml(item.remarks||'')}</td></tr>`;
-    });
-    const pdfHtml = `
-      <div class="pdf-header">
-        <div class="pdf-logo-text">TSDCI</div>
-        <div style="font-size:10px; color:#555;">Quality Assurance & Quality Control</div>
-      </div>
-      <div class="pdf-title">QA/QC PUNCHLIST TRACKING FORM</div>
-      <div class="pdf-info-grid">
-        <div><strong>Project:</strong> ${escapeHtml(document.getElementById('exp-proj').value)}<br><strong>Location:</strong> ${escapeHtml(document.getElementById('exp-loc').value)}</div>
-        <div><strong>Inspection Date:</strong> ${inspDate}</div>
-      </div>
-      <div class="pdf-legend"><strong>Status Legend:</strong> <span class="legend-open"></span> OPEN &nbsp;| <span class="legend-progress"></span> IN PROGRESS &nbsp;| <span class="legend-closed"></span> CLOSED &nbsp;| <span class="legend-void"></span> VOIDED</div>
-      <table class="pdf-table"><thead><tr><th>#</th><th>LOCATION</th><th>DESCRIPTION</th><th>PRI</th><th>INSPECTION PHOTO</th><th>CLOSE-OUT PHOTO</th><th>STATUS</th><th>REMARKS</th></tr></thead><tbody>${rows}</tbody></table>
-      <div class="pdf-footer"><div>** For Internal Use Only **</div><div>TSDCI-TGRDC-QAQC-FORM</div></div>
-    `;
-    document.getElementById('pdf-content').innerHTML = pdfHtml;
-    document.getElementById('preview-modal').classList.add('open');
-  }
-
-  function downloadPDF() {
-    const btn = document.querySelector('#preview-modal .generate');
-    btn.innerText = "⏳ Generating...";
-    btn.disabled = true;
-    const element = document.getElementById('pdf-content');
-    const opt = { margin: [10,10,10,10], filename: `Punchlist_${Date.now()}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
-    html2pdf().set(opt).from(element).save().then(() => { btn.innerText = "Download PDF"; btn.disabled = false; closePreview(); }).catch(e => { alert("PDF error"); btn.innerText = "Download PDF"; btn.disabled = false; });
-  }
-
-  // UI helpers
-  function openAdd() { document.getElementById('add-backdrop').classList.add('open'); document.getElementById('add-sheet').classList.add('open'); }
-  function closeAdd() { document.getElementById('add-backdrop').classList.remove('open'); document.getElementById('add-sheet').classList.remove('open'); }
-  function openExport() { document.getElementById('exp-backdrop').classList.add('open'); document.getElementById('exp-sheet').classList.add('open'); document.getElementById('exp-date').valueAsDate = new Date(); }
-  function closeExport() { document.getElementById('exp-backdrop').classList.remove('open'); document.getElementById('exp-sheet').classList.remove('open'); }
-  function closePreview() { document.getElementById('preview-modal').classList.remove('open'); }
-
-  function initFilters() {
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        currentFilter = chip.dataset.filter;
-        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        renderAll();
-      });
-    });
-  }
-
-  document.getElementById('f-photo-in')?.addEventListener('change', (e) => {
-    const preview = document.getElementById('photo-in-preview');
-    if (e.target.files && e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = ev => preview.innerHTML = `<img src="${ev.target.result}" style="max-width:80px; border-radius:6px;">`;
-      reader.readAsDataURL(e.target.files[0]);
-    } else preview.innerHTML = '';
+// ---------- Realtime Database sync ----------
+function initRealtimeSync() {
+  const syncDot = document.getElementById('sync-dot');
+  syncDot.classList.add('syncing');
+  dbRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    punchItems = data ? Object.entries(data).map(([key, val]) => ({ ...val, firebaseKey: key })) : [];
+    renderAll();
+    syncDot.classList.remove('syncing');
+    syncDot.classList.add('online');
+  }, (error) => {
+    console.error(error);
+    syncDot.classList.remove('syncing');
+    syncDot.classList.add('online');
   });
+}
 
-  // Expose functions globally
-  window.checkPassword = checkPassword;
-  window.addItem = addItem;
-  window.openAdd = openAdd; window.closeAdd = closeAdd;
-  window.openExport = openExport; window.closeExport = closeExport;
-  window.generatePreview = generatePreview; window.downloadPDF = downloadPDF; window.closePreview = closePreview;
-  window.updateField = updateField;
-  window.updateFieldWithCloseoutCheck = updateFieldWithCloseoutCheck;
-  window.uploadCloseout = uploadCloseout;
-  window.editRemarks = editRemarks;
-  initFilters();
+async function saveNewItemToFB(item) { await dbRef.push().set(item); }
+async function updateItemInFB(key, updates) { await dbRef.child(key).update(updates); }
+async function deleteItemFromFB(key) { await dbRef.child(key).remove(); }
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ---------- Render UI (with delete button) ----------
+function renderAll() {
+  const openCount = punchItems.filter(i => i.status !== 'CLOSED' && i.status !== 'VOIDED').length;
+  const highCount = punchItems.filter(i => i.priority === 'H').length;
+  const progCount = punchItems.filter(i => i.status === 'IN PROGRESS').length;
+  const doneCount = punchItems.filter(i => i.status === 'CLOSED').length;
+  document.getElementById('cnt-open').innerText = openCount;
+  document.getElementById('cnt-high').innerText = highCount;
+  document.getElementById('cnt-prog').innerText = progCount;
+  document.getElementById('cnt-done').innerText = doneCount;
+
+  let filtered = punchItems;
+  if (currentFilter !== 'all') filtered = punchItems.filter(i => i.status === currentFilter);
+  const container = document.getElementById('list');
+  if (!filtered.length) { container.innerHTML = '<div class="empty">📋 No items</div>'; return; }
+
+  container.innerHTML = '';
+  filtered.forEach(item => {
+    const statusClass = item.status === 'OPEN' ? 'badge-open' : (item.status === 'IN PROGRESS' ? 'badge-progress' : (item.status === 'CLOSED' ? 'badge-closed' : 'badge-void'));
+    const priorityClass = item.priority === 'H' ? 'badge-critical' : (item.priority === 'M' ? 'badge-medium' : 'badge-low');
+    const priorityLabel = item.priority === 'H' ? 'HIGH' : (item.priority === 'M' ? 'MEDIUM' : 'LOW');
+    const inspThumb = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb" style="display:flex;align-items:center;justify-content:center;">📷</div>`;
+    const closeThumb = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb" style="display:flex;align-items:center;justify-content:center;">🔒</div>`;
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div class="item-row">
+        <div class="item-details">
+          <div class="item-desc">${escapeHtml(item.desc)}</div>
+          <div class="item-meta"><span class="badge badge-gray">📍 ${escapeHtml(item.location)}</span><span class="badge ${priorityClass}">⚠️ ${priorityLabel}</span><span class="badge ${statusClass}">${item.status}</span></div>
+          ${item.remarks ? `<div class="item-note">📝 ${escapeHtml(item.remarks)}</div>` : ''}
+        </div>
+        <div class="status-pri-select">
+          <select class="small-select" data-key="${item.firebaseKey}" data-field="priority" onchange="updateField(this, 'priority')">
+            <option value="H" ${item.priority==='H'?'selected':''}>🔴 High</option>
+            <option value="M" ${item.priority==='M'?'selected':''}>🟡 Medium</option>
+            <option value="L" ${item.priority==='L'?'selected':''}>🟢 Low</option>
+          </select>
+          <select class="small-select" data-key="${item.firebaseKey}" data-field="status" onchange="updateFieldWithCloseoutCheck(this, 'status')">
+            <option value="OPEN" ${item.status==='OPEN'?'selected':''}>OPEN</option>
+            <option value="IN PROGRESS" ${item.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option>
+            <option value="FOR VERIFICATION" ${item.status==='FOR VERIFICATION'?'selected':''}>FOR VERIFICATION</option>
+            <option value="CLOSED" ${item.status==='CLOSED'?'selected':''}>CLOSED</option>
+            <option value="VOIDED" ${item.status==='VOIDED'?'selected':''}>VOIDED</option>
+          </select>
+          <button class="delete-btn" onclick="confirmDelete('${item.firebaseKey}')">🗑 Delete</button>
+        </div>
+      </div>
+      <div class="photo-strip">
+        <div>📸 Insp:</div> ${inspThumb}
+        <div>🔒 Close-out:</div> ${closeThumb}
+        <button class="upload-btn-small" onclick="uploadCloseout('${item.firebaseKey}')">Upload Close-out</button>
+        <button class="upload-btn-small" onclick="editRemarks('${item.firebaseKey}')">Remarks</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
+async function updateField(selectEl, field) {
+  const key = selectEl.dataset.key;
+  await updateItemInFB(key, { [field]: selectEl.value });
+}
+
+async function updateFieldWithCloseoutCheck(selectEl, field) {
+  const key = selectEl.dataset.key;
+  const newStatus = selectEl.value;
+  const item = punchItems.find(i => i.firebaseKey === key);
+  if (!item) return;
+  if (newStatus === 'CLOSED' && (!item.closeoutPhoto || item.closeoutPhoto === '')) {
+    alert("❌ Cannot mark CLOSED without a CLOSE-OUT photo. Upload one first.");
+    selectEl.value = item.status;
+    return;
+  }
+  if (newStatus === 'CLOSED' && item.status !== 'CLOSED') {
+    const remark = prompt("Optional closing remarks:", item.remarks || "");
+    if (remark !== null) await updateItemInFB(key, { remarks: remark, status: newStatus });
+    else await updateItemInFB(key, { status: newStatus });
+  } else {
+    await updateItemInFB(key, { [field]: newStatus });
+  }
+}
+
+async function uploadCloseout(key) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const base64 = await fileToBase64(file);
+      await updateItemInFB(key, { closeoutPhoto: base64 });
+    }
+  };
+  input.click();
+}
+
+async function editRemarks(key) {
+  const item = punchItems.find(i => i.firebaseKey === key);
+  if (item) {
+    const newRem = prompt("Edit remarks (optional):", item.remarks || "");
+    if (newRem !== null) await updateItemInFB(key, { remarks: newRem });
+  }
+}
+
+async function confirmDelete(key) {
+  const confirmed = confirm("⚠️ Are you sure you want to permanently delete this punchlist item? This action cannot be undone.");
+  if (confirmed) {
+    await deleteItemFromFB(key);
+  }
+}
+
+async function addItem() {
+  const desc = document.getElementById('f-desc').value.trim();
+  const loc = document.getElementById('f-loc').value.trim();
+  const pri = document.getElementById('f-pri').value;
+  const initStatus = document.getElementById('f-status').value;
+  const remarks = document.getElementById('f-notes').value.trim();
+  const photoFile = document.getElementById('f-photo-in').files[0];
+  if (!desc) { alert("Description required"); return; }
+  if (!loc) { alert("Location required"); return; }
+  if (!photoFile) { alert("Inspection photo required"); return; }
+  const inspectionBase64 = await fileToBase64(photoFile);
+  const newItem = {
+    desc, location: loc, priority: pri, status: initStatus, remarks: remarks || "",
+    inspectionPhoto: inspectionBase64, closeoutPhoto: "",
+    createdAt: firebase.database.ServerValue.TIMESTAMP
+  };
+  await saveNewItemToFB(newItem);
+  closeAdd();
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-loc').value = '';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('f-photo-in').value = '';
+  document.getElementById('photo-in-preview').innerHTML = '';
+}
+
+// ---------- PDF Generation (fixed: black text, left logo, images fixed width) ----------
+const LOGO_URL = "https://raw.githubusercontent.com/engrjai-max/engrjai-max.github.io/main/logo.png";
+
+async function generatePreview() {
+  const inspDate = document.getElementById('exp-date').value;
+  if (!inspDate) { alert("Please select Inspection Date."); return; }
+  closeExport();
+  let rows = '';
+  punchItems.forEach((item, idx) => {
+    const inspImg = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="pdf-img" crossorigin="anonymous" style="max-width:60px; max-height:50px; width:auto; height:auto;">` : '<span>No Image</span>';
+    const closeImg = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="pdf-img" crossorigin="anonymous" style="max-width:60px; max-height:50px; width:auto; height:auto;">` : '<span>No Image</span>';
+    rows += `<tr><td style="text-align:center; vertical-align:middle;">${idx+1}</td><td style="vertical-align:top;">${escapeHtml(item.location)}</td><td style="vertical-align:top;">${escapeHtml(item.desc)}</td><td style="text-align:center; vertical-align:middle;">${item.priority}</td><td style="text-align:center; vertical-align:middle; width:70px;">${inspImg}</td><td style="text-align:center; vertical-align:middle; width:70px;">${closeImg}</td><td style="text-align:center; vertical-align:middle;">${item.status}</td><td style="vertical-align:top;">${escapeHtml(item.remarks||'')}</td></tr>`;
+  });
+  const pdfHtml = `
+    <div class="pdf-header-logo">
+      <img src="${LOGO_URL}" class="pdf-logo-img" onerror="this.style.display='none'" style="height:70px;">
+    </div>
+    <div class="pdf-title">QA/QC PUNCHLIST TRACKING FORM</div>
+    <div class="pdf-info-grid">
+      <div><strong>Project:</strong> ${escapeHtml(document.getElementById('exp-proj').value)}<br><strong>Location:</strong> ${escapeHtml(document.getElementById('exp-loc').value)}</div>
+      <div><strong>Inspection Date:</strong> ${inspDate}</div>
+    </div>
+    <div class="pdf-legend"><strong>Status Legend:</strong> <span class="legend-open"></span> OPEN &nbsp;| <span class="legend-progress"></span> IN PROGRESS &nbsp;| <span class="legend-closed"></span> CLOSED &nbsp;| <span class="legend-void"></span> VOIDED</div>
+    <table class="pdf-table">
+      <thead><tr><th style="width:5%">#</th><th style="width:12%">LOCATION</th><th style="width:20%">DESCRIPTION</th><th style="width:6%">PRI</th><th style="width:12%">INSPECTION PHOTO</th><th style="width:12%">CLOSE-OUT PHOTO</th><th style="width:10%">STATUS</th><th style="width:23%">REMARKS</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="pdf-footer"><div>** For Internal Use Only **</div><div>TSDCI-TGRDC-QAQC-FORM</div></div>
+  `;
+  document.getElementById('pdf-content').innerHTML = pdfHtml;
+  document.getElementById('preview-modal').classList.add('open');
+}
+
+function downloadPDF() {
+  const btn = document.querySelector('#preview-modal .generate');
+  btn.innerText = "⏳ Generating...";
+  btn.disabled = true;
+  const element = document.getElementById('pdf-content');
+  const opt = { margin: [10,10,10,10], filename: `Punchlist_${Date.now()}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
+  html2pdf().set(opt).from(element).save().then(() => { btn.innerText = "Download PDF"; btn.disabled = false; closePreview(); }).catch(e => { alert("PDF error"); btn.innerText = "Download PDF"; btn.disabled = false; });
+}
+
+// UI helpers
+function openAdd() { document.getElementById('add-backdrop').classList.add('open'); document.getElementById('add-sheet').classList.add('open'); }
+function closeAdd() { document.getElementById('add-backdrop').classList.remove('open'); document.getElementById('add-sheet').classList.remove('open'); }
+function openExport() { document.getElementById('exp-backdrop').classList.add('open'); document.getElementById('exp-sheet').classList.add('open'); document.getElementById('exp-date').valueAsDate = new Date(); }
+function closeExport() { document.getElementById('exp-backdrop').classList.remove('open'); document.getElementById('exp-sheet').classList.remove('open'); }
+function closePreview() { document.getElementById('preview-modal').classList.remove('open'); }
+
+function initFilters() {
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      currentFilter = chip.dataset.filter;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      renderAll();
+    });
+  });
+}
+
+document.getElementById('f-photo-in')?.addEventListener('change', (e) => {
+  const preview = document.getElementById('photo-in-preview');
+  if (e.target.files && e.target.files[0]) {
+    const reader = new FileReader();
+    reader.onload = ev => preview.innerHTML = `<img src="${ev.target.result}" style="max-width:80px; border-radius:6px;">`;
+    reader.readAsDataURL(e.target.files[0]);
+  } else preview.innerHTML = '';
+});
+
+window.checkPassword = checkPassword;
+window.addItem = addItem;
+window.openAdd = openAdd; window.closeAdd = closeAdd;
+window.openExport = openExport; window.closeExport = closeExport;
+window.generatePreview = generatePreview; window.downloadPDF = downloadPDF; window.closePreview = closePreview;
+window.updateField = updateField;
+window.updateFieldWithCloseoutCheck = updateFieldWithCloseoutCheck;
+window.uploadCloseout = uploadCloseout;
+window.editRemarks = editRemarks;
+window.confirmDelete = confirmDelete;
+initFilters();
 </script>
 </body>
 </html>
