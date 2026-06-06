@@ -11,28 +11,6 @@
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-// ── PASSWORD GATE ──
-const PASS = 'kotendorm'; // ← change this
-const SESSION_KEY = 'pl_auth';
-
-function checkPass() {
-  const val = document.getElementById('gate-input').value;
-  if (val === PASS) {
-    sessionStorage.setItem(SESSION_KEY, '1');
-    document.getElementById('gate').style.display = 'none';
-  } else {
-    const err = document.getElementById('gate-err');
-    err.style.display = 'block';
-    document.getElementById('gate-input').value = '';
-    document.getElementById('gate-input').focus();
-    setTimeout(() => err.style.display = 'none', 3000);
-  }
-}
-
-// Check on load — hide gate if already authenticated this session
-if (sessionStorage.getItem(SESSION_KEY) === '1') {
-  document.getElementById('gate').style.display = 'none';
-}
 <!-- JSZip for docx export -->
 <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
@@ -139,7 +117,24 @@ textarea{resize:vertical;min-height:70px}
 </style>
 </head>
 <body>
-
+<!-- PASSWORD GATE -->
+<div id="gate" style="display:flex;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;padding:24px">
+  <div style="width:100%;max-width:360px">
+    <div style="font-size:32px;text-align:center;margin-bottom:8px">📋</div>
+    <h2 style="text-align:center;font-size:20px;font-weight:600;margin-bottom:4px">Punchlist</h2>
+    <p style="text-align:center;font-size:13px;color:var(--text2);margin-bottom:24px">TSDCI — Authorized access only</p>
+    <div style="margin-bottom:12px">
+      <input id="gate-input" type="password" placeholder="Enter password"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 14px;font-size:16px;color:var(--text);font-family:inherit;outline:none;-webkit-appearance:none"
+        onkeydown="if(event.key==='Enter')checkPass()"/>
+    </div>
+    <button onclick="checkPass()"
+      style="width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:14px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit">
+      Unlock
+    </button>
+    <p id="gate-err" style="text-align:center;font-size:13px;color:var(--red);margin-top:12px;display:none">Incorrect password.</p>
+  </div>
+</div>
 <div class="topbar">
   <div class="topbar-inner">
     <div class="app-title">
