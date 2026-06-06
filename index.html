@@ -6,55 +6,59 @@
 <meta name="theme-color" content="#1a1a2e">
 <title>TSDCI QA/QC Punchlist</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <style>
-:root{--bg:#f5f4f0;--surface:#fff;--surface2:#eeede9;--border:rgba(0,0,0,.10);--border2:rgba(0,0,0,.18);--text:#1a1917;--text2:#6b6860;--text3:#9e9c97;--accent:#1d4ed8;--accent-bg:#eff6ff;--red:#b91c1c;--red-bg:#fef2f2;--orange:#c2410c;--orange-bg:#fff7ed;--amber:#92400e;--amber-bg:#fffbeb;--green:#166534;--green-bg:#f0fdf4;--radius:12px;--radius-sm:8px}
-@media(prefers-color-scheme:dark){:root{--bg:#111110;--surface:#1c1c1a;--surface2:#252523;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);--text:#f0efe9;--text2:#a09e99;--text3:#6b6860;--accent:#60a5fa;--accent-bg:#1e3a5f;--red:#fca5a5;--red-bg:#450a0a;--orange:#fdba74;--orange-bg:#431407;--amber:#fcd34d;--amber-bg:#451a03;--green:#86efac;--green-bg:#052e16}}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,"SF Pro Text","Helvetica Neue",sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;font-size:15px;line-height:1.5}
-#gate{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;padding:24px}
+/* ========== STYLES ========== */
+:root{--bg:#f5f4f0;--surface:#fff;--surface2:#eeede9;--border:rgba(0,0,0,.10);--border2:rgba(0,0,0,.18);--text:#1a1917;--text2:#6b6860;--accent:#1d4ed8;--red:#b91c1c;--green:#166534;--radius:12px;--radius-sm:8px}
+@media(prefers-color-scheme:dark){:root{--bg:#111110;--surface:#1c1c1a;--surface2:#252523;--border:rgba(255,255,255,.08);--text:#f0efe9;--text2:#a09e99;--accent:#60a5fa;--red:#fca5a5;--green:#86efac}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"SF Pro Text",sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;font-size:15px}
+#gate{display:flex;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;padding:24px}
 .gate-box{width:100%;max-width:360px}
 .gate-logo{font-size:36px;text-align:center}
-.gate-title{text-align:center;font-size:20px;font-weight:600}
-.gate-sub{text-align:center;font-size:13px;color:var(--text2);margin-bottom:28px}
+.gate-title{font-size:20px;font-weight:600;text-align:center}
+.gate-sub{font-size:13px;color:var(--text2);margin-bottom:20px;text-align:center}
 .gate-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;font-size:16px;margin-bottom:12px}
 .gate-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:env(safe-area-inset-top,0px) 16px 0;position:sticky;top:0;z-index:100}
-.topbar-inner{display:flex;align-items:center;justify-content:space-between;height:52px}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:env(safe-area-inset-top,0) 16px 0;position:sticky;top:0;z-index:100}
+.topbar-inner{display:flex;justify-content:space-between;align-items:center;height:52px}
 .app-title{font-size:18px;font-weight:600;display:flex;gap:8px;align-items:center}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#22c55e}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#9ca3af}
+.sync-dot.online{background:#22c55e}
+.sync-dot.syncing{background:#f59e0b;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px}
 .stat{background:var(--surface);border-radius:var(--radius-sm);padding:10px;text-align:center;border:1px solid var(--border)}
 .stat-num{font-size:20px;font-weight:600}
-.stat-lbl{font-size:10px;color:var(--text2);margin-top:3px}
+.stat-lbl{font-size:10px;color:var(--text2)}
 .filters{padding:0 16px 10px;display:flex;gap:6px;overflow-x:auto}
 .filter-chip{white-space:nowrap;font-size:13px;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer}
-.filter-chip.active{background:var(--text);color:var(--bg);border-color:var(--text)}
-.list{padding:0 16px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
-.item{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:10px;overflow:hidden}
-.item-main{padding:14px;display:flex;flex-direction:column;gap:10px}
-.item-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:flex-start}
+.filter-chip.active{background:var(--text);color:var(--bg)}
+.list{padding:0 16px 80px}
+.item{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:10px;padding:14px}
+.item-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
 .item-details{flex:1}
-.item-desc{font-size:15px;font-weight:600;word-break:break-word}
+.item-desc{font-weight:600}
 .item-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
-.badge-critical{background:var(--red-bg);color:var(--red)}
-.badge-high{background:var(--orange-bg);color:var(--orange)}
-.badge-medium{background:var(--amber-bg);color:var(--amber)}
-.badge-low{background:var(--green-bg);color:var(--green)}
-.badge-open{background:var(--accent-bg);color:var(--accent)}
-.badge-progress{background:var(--amber-bg);color:var(--amber)}
-.badge-closed{background:var(--green-bg);color:var(--green)}
-.badge-void{background:var(--surface2);color:var(--text2)}
-.item-note{font-size:12px;color:var(--text2);margin-top:6px;background:var(--surface2);padding:6px 8px;border-radius:8px}
-.photo-thumb{width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);cursor:pointer}
-.photo-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.status-select{padding:6px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border2);font-size:13px}
-.upload-btn-small{background:var(--accent-bg);border:1px solid var(--border2);border-radius:20px;padding:5px 10px;font-size:11px;cursor:pointer;color:var(--accent)}
-.fab{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));right:20px;width:56px;height:56px;border-radius:50%;background:var(--text);color:var(--bg);border:none;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;z-index:200}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px}
+.badge-critical{background:#fef2f2;color:#b91c1c}
+.badge-high{background:#fff7ed;color:#c2410c}
+.badge-medium{background:#fffbeb;color:#92400e}
+.badge-low{background:#f0fdf4;color:#166534}
+.badge-open{background:#eff6ff;color:#1d4ed8}
+.badge-progress{background:#fffbeb;color:#92400e}
+.badge-closed{background:#f0fdf4;color:#166534}
+.badge-void{background:#eeede9;color:#6b6860}
+.item-note{font-size:12px;color:var(--text2);margin-top:6px;background:var(--surface2);padding:6px;border-radius:8px}
+.photo-thumb{width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);cursor:pointer}
+.photo-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.status-pri-select{display:flex;gap:8px;align-items:center}
+select.small-select{padding:4px 8px;border-radius:16px;background:var(--surface2);border:1px solid var(--border2);font-size:12px}
+.upload-btn-small{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer}
+.fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--text);color:var(--bg);border:none;font-size:28px;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;z-index:200}
 .sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;opacity:0;transition:opacity .25s}
 .sheet-backdrop.open{display:block;opacity:1}
 .sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:0 16px 24px;z-index:400;transform:translateY(100%);transition:transform .3s;max-height:92dvh;overflow-y:auto}
@@ -62,313 +66,416 @@ body{font-family:-apple-system,"SF Pro Text","Helvetica Neue",sans-serif;backgro
 .sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 16px}
 .sheet-title{font-size:18px;font-weight:600;margin-bottom:16px}
 .field{margin-bottom:14px}
-.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
-input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 12px;font-size:15px}
+.field label{font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px}
+input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px;font-size:15px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .submit-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer;margin-top:8px}
-.export-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer;display:flex;gap:8px;justify-content:center}
-.proj-fields{background:var(--surface2);border-radius:var(--radius);padding:12px;margin-bottom:12px}
+.export-btn{width:100%;background:var(--accent);color:#fff;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer;display:flex;gap:8px;justify-content:center}
 #preview-modal{display:none;position:fixed;inset:0;background:var(--bg);z-index:900;flex-direction:column}
 #preview-modal.open{display:flex}
-.preview-header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px;display:flex;justify-content:space-between;align-items:center}
-.preview-header button{background:none;border:none;font-size:24px;cursor:pointer}
-.preview-header button.generate{background:var(--accent);color:#fff;border-radius:8px;padding:8px 16px;font-size:14px}
+.preview-header{background:var(--surface);padding:16px;display:flex;justify-content:space-between}
 .preview-body{flex:1;overflow:auto;padding:20px;background:#525659}
-#pdf-content{background:#fff;color:#000;width:297mm;min-height:210mm;padding:15mm 20mm;margin:auto;font-family:Arial,sans-serif}
-.pdf-header-flex{display:flex;align-items:center;gap:15px;margin-bottom:10px;border-bottom:2px solid #333;padding-bottom:10px}
-.pdf-logo{height:60px;width:auto;object-fit:contain}
-.pdf-company-details{flex:1}
-.pdf-company-name{font-size:16px;font-weight:bold;color:#1a3a5c}
-.pdf-company-address{font-size:9px;color:#555;margin-top:2px}
-.pdf-title{text-align:center;font-size:16px;font-weight:bold;margin:10px 0;background:#eef2ff;padding:6px}
-.pdf-info-grid{display:flex;justify-content:space-between;margin-bottom:15px;font-size:10px;border:1px solid #ccc;padding:8px}
-.pdf-legend{margin-bottom:15px;font-size:9px;border:1px solid #ddd;padding:8px}
-.pdf-legend span{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:4px}
-.legend-open{background:#22c55e}
+#pdf-content{background:#fff;width:297mm;min-height:210mm;padding:15mm 20mm;margin:auto;font-family:Arial,sans-serif}
+.pdf-header{text-align:center;margin-bottom:15px;border-bottom:2px solid #333;padding-bottom:10px}
+.pdf-logo-text{font-size:24px;font-weight:bold;color:#1a3a5c;letter-spacing:2px}
+.pdf-title{text-align:center;font-weight:bold;background:#eef2ff;padding:6px;margin:10px 0}
+.pdf-info-grid{display:flex;justify-content:space-between;font-size:10px;border:1px solid #ccc;padding:8px;margin-bottom:15px}
+.pdf-legend{font-size:9px;border:1px solid #ddd;padding:8px;margin-bottom:15px}
+.legend-open{display:inline-block;width:12px;height:12px;background:#22c55e;margin-right:4px}
 .legend-progress{background:#eab308}
 .legend-closed{background:#d946ef}
 .legend-void{background:#9ca3af}
 .pdf-table{width:100%;border-collapse:collapse;font-size:8.5px}
-.pdf-table th,.pdf-table td{border:1px solid #000;padding:5px;vertical-align:top}
-.pdf-table th{background:#e5e7eb}
-.pdf-img{max-width:60px;max-height:45px;object-fit:cover}
-.pdf-footer{margin-top:20px;text-align:center;font-size:8px;border-top:1px solid #ccc;padding-top:8px}
+.pdf-table th,.pdf-table td{border:1px solid #000;padding:5px}
+.pdf-img{max-width:60px;max-height:45px}
+.pdf-footer{text-align:center;font-size:8px;border-top:1px solid #ccc;padding-top:8px;margin-top:20px}
 .empty{text-align:center;padding:40px;color:var(--text2)}
 </style>
 </head>
 <body>
-<div id="gate" style="display:flex">
+
+<!-- Single Password Gate -->
+<div id="gate">
   <div class="gate-box">
     <div class="gate-logo">🔨</div>
     <h2 class="gate-title">TSDCI QA/QC Punchlist</h2>
-    <p class="gate-sub">Authorized access only</p>
-    <input id="gate-input" class="gate-input" type="password" placeholder="Enter password" />
-    <button class="gate-btn" onclick="checkPass()">Unlock</button>
+    <p class="gate-sub">Enter the project password</p>
+    <input id="gate-password" class="gate-input" type="password" placeholder="Password" />
+    <button class="gate-btn" onclick="checkGlobalPassword()">Unlock</button>
     <p id="gate-err" class="gate-err" style="color:var(--red);margin-top:10px"></p>
   </div>
 </div>
+
+<!-- MAIN APP (hidden until auth) -->
 <div id="main-app" style="display:none">
-<div class="topbar"><div class="topbar-inner"><div class="app-title"><span>📋 Punchlist</span><div class="sync-dot" id="sync-dot"></div></div><div class="topbar-right"><button class="icon-btn" onclick="openExport()">⬆</button></div></div></div>
-<div class="stats-row"><div class="stat"><div class="stat-num" id="cnt-open">0</div><div class="stat-lbl">Open</div></div><div class="stat"><div class="stat-num" id="cnt-high">0</div><div class="stat-lbl">Critical (H)</div></div><div class="stat"><div class="stat-num" id="cnt-prog">0</div><div class="stat-lbl">In Progress</div></div><div class="stat"><div class="stat-num" id="cnt-done">0</div><div class="stat-lbl">Closed</div></div></div>
-<div class="filters" id="filters-container"><div class="filter-chip active" data-filter="all">All</div><div class="filter-chip" data-filter="OPEN">Open</div><div class="filter-chip" data-filter="IN PROGRESS">In Progress</div><div class="filter-chip" data-filter="CLOSED">Closed</div><div class="filter-chip" data-filter="VOIDED">Voided</div></div>
-<div class="list" id="list"><div class="empty">Loading...</div></div>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="app-title"><span>📋 Punchlist</span><div class="sync-dot" id="sync-dot"></div></div>
+    <div><button class="icon-btn" onclick="openExport()">⬆</button></div>
+  </div>
+</div>
+<div class="stats-row">
+  <div class="stat"><div class="stat-num" id="cnt-open">0</div><div class="stat-lbl">Open</div></div>
+  <div class="stat"><div class="stat-num" id="cnt-high">0</div><div class="stat-lbl">Critical (H)</div></div>
+  <div class="stat"><div class="stat-num" id="cnt-prog">0</div><div class="stat-lbl">In Progress</div></div>
+  <div class="stat"><div class="stat-num" id="cnt-done">0</div><div class="stat-lbl">Closed</div></div>
+</div>
+<div class="filters" id="filters-container">
+  <div class="filter-chip active" data-filter="all">All</div>
+  <div class="filter-chip" data-filter="OPEN">Open</div>
+  <div class="filter-chip" data-filter="IN PROGRESS">In Progress</div>
+  <div class="filter-chip" data-filter="CLOSED">Closed</div>
+  <div class="filter-chip" data-filter="VOIDED">Voided</div>
+</div>
+<div class="list" id="list"><div class="empty">Loading items...</div></div>
 <button class="fab" onclick="openAdd()">+</button>
 
 <!-- ADD SHEET -->
 <div class="sheet-backdrop" id="add-backdrop" onclick="closeAdd()"></div>
-<div class="sheet" id="add-sheet"><div class="sheet-handle"></div><div class="sheet-title">➕ New Punch Item</div>
-<div class="field"><label>Description *</label><input type="text" id="f-desc" placeholder="e.g., Cracked tile" /></div>
-<div class="field"><label>Location (Room/Floor/Dorm) *</label><input type="text" id="f-loc" placeholder="e.g., Unit 3B, 2nd Floor" /></div>
-<div class="form-grid"><div class="field"><label>Priority *</label><select id="f-pri"><option value="H">🔴 High (H)</option><option value="M" selected>🟡 Medium (M)</option><option value="L">🟢 Low (L)</option></select></div>
-<div class="field"><label>Initial Status</label><select id="f-status"><option value="OPEN">OPEN</option><option value="IN PROGRESS">IN PROGRESS</option><option value="FOR VERIFICATION">FOR VERIFICATION</option></select></div></div>
-<div class="field"><label>📸 INSPECTION PHOTO * (Required)</label><input type="file" id="f-photo-in" accept="image/*" /><div id="photo-in-preview" style="margin-top:6px;font-size:12px"></div></div>
-<div class="field"><label>Remarks (Optional)</label><textarea id="f-notes" placeholder="Additional notes..."></textarea></div>
-<button class="submit-btn" onclick="addItem()">➕ Create Item</button></div>
+<div class="sheet" id="add-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">➕ New Punch Item</div>
+  <div class="field"><label>Description *</label><input type="text" id="f-desc" placeholder="e.g., Cracked tile" /></div>
+  <div class="field"><label>Location (Room/Floor/Dorm) *</label><input type="text" id="f-loc" placeholder="e.g., Unit 3B, 2nd Floor" /></div>
+  <div class="form-grid">
+    <div class="field"><label>Priority *</label><select id="f-pri"><option value="H">🔴 High (H)</option><option value="M" selected>🟡 Medium (M)</option><option value="L">🟢 Low (L)</option></select></div>
+    <div class="field"><label>Initial Status</label><select id="f-status"><option value="OPEN">OPEN</option><option value="IN PROGRESS">IN PROGRESS</option><option value="FOR VERIFICATION">FOR VERIFICATION</option></select></div>
+  </div>
+  <div class="field"><label>📸 INSPECTION PHOTO * (Required)</label><input type="file" id="f-photo-in" accept="image/*" /><div id="photo-in-preview" style="margin-top:6px"></div></div>
+  <div class="field"><label>Remarks (Optional)</label><textarea id="f-notes" rows="2"></textarea></div>
+  <button class="submit-btn" onclick="addItem()">Create Item</button>
+</div>
 
-<!-- EXPORT SHEET (asks for inspection date) -->
+<!-- EXPORT SHEET -->
 <div class="sheet-backdrop" id="exp-backdrop" onclick="closeExport()"></div>
-<div class="sheet" id="exp-sheet"><div class="sheet-handle"></div><div class="sheet-title">📄 Export to PDF</div>
-<div class="proj-fields"><div class="field"><label>Project name</label><input type="text" id="exp-proj" value="A Proposed 2-Unit 3-Storey Dormitory Building" /></div>
-<div class="field"><label>Project location</label><input type="text" id="exp-loc" value="Brgy. Tambubong, San Rafael, Bulacan" /></div>
-<div class="field"><label>📅 Inspection Date *</label><input type="date" id="exp-date" required /></div></div>
-<button class="export-btn" onclick="generatePreviewWithLogo()">🔍 Preview & Export PDF</button></div>
+<div class="sheet" id="exp-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">📄 Export to PDF</div>
+  <div class="field"><label>Project name</label><input type="text" id="exp-proj" value="A Proposed 2-Unit 3-Storey Dormitory Building" /></div>
+  <div class="field"><label>Project location</label><input type="text" id="exp-loc" value="Brgy. Tambubong, San Rafael, Bulacan" /></div>
+  <div class="field"><label>📅 Inspection Date *</label><input type="date" id="exp-date" required /></div>
+  <button class="export-btn" onclick="generatePreview()">Preview & Export PDF</button>
+</div>
 
-<!-- PDF PREVIEW MODAL -->
-<div id="preview-modal"><div class="preview-header"><button onclick="closePreview()">✕</button><div style="font-weight:600;">QA/QC Report Preview</div><button class="generate" onclick="downloadPDF()">⬇ Download PDF</button></div>
-<div class="preview-body"><div id="pdf-content"></div></div></div>
+<!-- PDF MODAL -->
+<div id="preview-modal">
+  <div class="preview-header"><button onclick="closePreview()" style="background:none;border:none;font-size:24px">✕</button><button class="generate" onclick="downloadPDF()">⬇ Download PDF</button></div>
+  <div class="preview-body"><div id="pdf-content"></div></div>
+</div>
 </div>
 
 <script>
-// Password gate
-const PWD = "punchlist2025";
-function checkPass() {
-  const inp = document.getElementById('gate-input').value;
-  if(inp === PWD) {
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('main-app').style.display = 'block';
-    initApp();
-  } else document.getElementById('gate-err').innerText = "Wrong password";
-}
+  // ========== 🔥 FIREBASE CONFIGURATION ==========
+  // Replace with your own Firebase project details
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    databaseURL: "https://punchlist-57de5-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    appId: "YOUR_APP_ID"
+  };
+  
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-// Data store
-let punchItems = [];
-let currentFilter = "all";
+  // Global variables
+  let punchItems = [];
+  let currentFilter = "all";
+  let dbRef = null;         // will be set after password validation
+  let isAuthenticated = false;
 
-function saveLocal() { localStorage.setItem('punchlist_data', JSON.stringify(punchItems)); }
-function loadLocal() {
-  const stored = localStorage.getItem('punchlist_data');
-  if(stored) punchItems = JSON.parse(stored);
-  else punchItems = [];
-  renderAll();
-}
+  // ---------- Password Verification (stored hash in Firebase) ----------
+  // The password hash is stored at /admin/passwordHash (SHA-256)
+  // You must set this value once in Firebase Console or via script.
+  // Example hash for "punchlist2025" (you can generate with CryptoJS.SHA256)
+  
+  async function checkGlobalPassword() {
+    const enteredPwd = document.getElementById('gate-password').value;
+    if (!enteredPwd) {
+      document.getElementById('gate-err').innerText = "Enter password";
+      return;
+    }
+    document.getElementById('gate-err').innerText = "Verifying...";
+    try {
+      // Fetch the stored hash from Firebase
+      const snapshot = await db.ref('admin/passwordHash').once('value');
+      const storedHash = snapshot.val();
+      if (!storedHash) {
+        document.getElementById('gate-err').innerText = "System not initialized. Contact admin.";
+        return;
+      }
+      // Hash the entered password using SHA-256
+      const enteredHash = CryptoJS.SHA256(enteredPwd).toString();
+      if (enteredHash === storedHash) {
+        isAuthenticated = true;
+        document.getElementById('gate').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        // Initialize database reference (using a fixed path for all users, since single password)
+        dbRef = db.ref('punchlist');
+        initRealtimeSync();
+      } else {
+        document.getElementById('gate-err').innerText = "Incorrect password.";
+      }
+    } catch (error) {
+      console.error(error);
+      document.getElementById('gate-err').innerText = "Error verifying password. Check network.";
+    }
+  }
 
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+  // ---------- Realtime Database sync ----------
+  function initRealtimeSync() {
+    const syncDot = document.getElementById('sync-dot');
+    syncDot.classList.add('syncing');
+    dbRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        // Convert object to array
+        punchItems = Object.entries(data).map(([key, val]) => ({ ...val, firebaseKey: key }));
+      } else {
+        punchItems = [];
+      }
+      renderAll();
+      syncDot.classList.remove('syncing');
+      syncDot.classList.add('online');
+    }, (error) => {
+      console.error(error);
+      syncDot.classList.remove('syncing');
+      syncDot.classList.add('online');
+    });
+  }
 
-function renderAll() {
-  const openCount = punchItems.filter(i => i.status !== 'CLOSED' && i.status !== 'VOIDED').length;
-  const highCount = punchItems.filter(i => i.priority === 'H').length;
-  const progCount = punchItems.filter(i => i.status === 'IN PROGRESS').length;
-  const doneCount = punchItems.filter(i => i.status === 'CLOSED').length;
-  document.getElementById('cnt-open').innerText = openCount;
-  document.getElementById('cnt-high').innerText = highCount;
-  document.getElementById('cnt-prog').innerText = progCount;
-  document.getElementById('cnt-done').innerText = doneCount;
+  // Save new item
+  async function saveNewItemToFB(item) {
+    const newRef = dbRef.push();
+    await newRef.set(item);
+    return newRef.key;
+  }
 
-  let filtered = punchItems;
-  if(currentFilter !== 'all') filtered = punchItems.filter(i => i.status === currentFilter);
-  const container = document.getElementById('list');
-  if(!filtered.length) { container.innerHTML = '<div class="empty">📋 No items</div>'; return; }
-  container.innerHTML = '';
-  filtered.forEach(item => {
-    const statusClass = item.status === 'OPEN' ? 'badge-open' : (item.status === 'IN PROGRESS' ? 'badge-progress' : (item.status === 'CLOSED' ? 'badge-closed' : 'badge-void'));
-    const priorityClass = item.priority === 'H' ? 'badge-critical' : (item.priority === 'M' ? 'badge-medium' : 'badge-low');
-    const priorityLabel = item.priority === 'H' ? 'HIGH' : (item.priority === 'M' ? 'MEDIUM' : 'LOW');
-    const inspThumb = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb" style="display:flex;align-items:center;justify-content:center;">📷</div>`;
-    const closeThumb = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb" style="display:flex;align-items:center;justify-content:center;">🔒</div>`;
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-      <div class="item-main">
+  // Update existing item
+  async function updateItemInFB(firebaseKey, updates) {
+    await dbRef.child(firebaseKey).update(updates);
+  }
+
+  // Helper: convert file to base64
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---------- Render UI ----------
+  function renderAll() {
+    // Update stats
+    const openCount = punchItems.filter(i => i.status !== 'CLOSED' && i.status !== 'VOIDED').length;
+    const highCount = punchItems.filter(i => i.priority === 'H').length;
+    const progCount = punchItems.filter(i => i.status === 'IN PROGRESS').length;
+    const doneCount = punchItems.filter(i => i.status === 'CLOSED').length;
+    document.getElementById('cnt-open').innerText = openCount;
+    document.getElementById('cnt-high').innerText = highCount;
+    document.getElementById('cnt-prog').innerText = progCount;
+    document.getElementById('cnt-done').innerText = doneCount;
+
+    let filtered = punchItems;
+    if (currentFilter !== 'all') filtered = punchItems.filter(i => i.status === currentFilter);
+    const container = document.getElementById('list');
+    if (!filtered.length) { container.innerHTML = '<div class="empty">📋 No items</div>'; return; }
+
+    container.innerHTML = '';
+    filtered.forEach(item => {
+      const statusClass = item.status === 'OPEN' ? 'badge-open' : (item.status === 'IN PROGRESS' ? 'badge-progress' : (item.status === 'CLOSED' ? 'badge-closed' : 'badge-void'));
+      const priorityClass = item.priority === 'H' ? 'badge-critical' : (item.priority === 'M' ? 'badge-medium' : 'badge-low');
+      const priorityLabel = item.priority === 'H' ? 'HIGH' : (item.priority === 'M' ? 'MEDIUM' : 'LOW');
+      const inspThumb = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb" style="display:flex;align-items:center;justify-content:center;">📷</div>`;
+      const closeThumb = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb" style="display:flex;align-items:center;justify-content:center;">🔒</div>`;
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
         <div class="item-row">
           <div class="item-details">
             <div class="item-desc">${escapeHtml(item.desc)}</div>
             <div class="item-meta"><span class="badge badge-gray">📍 ${escapeHtml(item.location)}</span><span class="badge ${priorityClass}">⚠️ ${priorityLabel}</span><span class="badge ${statusClass}">${item.status}</span></div>
             ${item.remarks ? `<div class="item-note">📝 ${escapeHtml(item.remarks)}</div>` : ''}
           </div>
-          <select class="status-select" data-id="${item.id}" onchange="updateStatus(this)"><option value="OPEN" ${item.status==='OPEN'?'selected':''}>OPEN</option><option value="IN PROGRESS" ${item.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option><option value="FOR VERIFICATION" ${item.status==='FOR VERIFICATION'?'selected':''}>FOR VERIFICATION</option><option value="CLOSED" ${item.status==='CLOSED'?'selected':''}>CLOSED</option><option value="VOIDED" ${item.status==='VOIDED'?'selected':''}>VOIDED</option></select>
+          <div class="status-pri-select">
+            <select class="small-select" data-key="${item.firebaseKey}" data-field="priority" onchange="updateField(this, 'priority')">
+              <option value="H" ${item.priority==='H'?'selected':''}>🔴 High</option>
+              <option value="M" ${item.priority==='M'?'selected':''}>🟡 Medium</option>
+              <option value="L" ${item.priority==='L'?'selected':''}>🟢 Low</option>
+            </select>
+            <select class="small-select" data-key="${item.firebaseKey}" data-field="status" onchange="updateFieldWithCloseoutCheck(this, 'status')">
+              <option value="OPEN" ${item.status==='OPEN'?'selected':''}>OPEN</option>
+              <option value="IN PROGRESS" ${item.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option>
+              <option value="FOR VERIFICATION" ${item.status==='FOR VERIFICATION'?'selected':''}>FOR VERIFICATION</option>
+              <option value="CLOSED" ${item.status==='CLOSED'?'selected':''}>CLOSED</option>
+              <option value="VOIDED" ${item.status==='VOIDED'?'selected':''}>VOIDED</option>
+            </select>
+          </div>
         </div>
-        <div class="photo-strip"><div>📸 Insp:</div> ${inspThumb}<div>🔒 Close-out:</div> ${closeThumb}<button class="upload-btn-small" onclick="uploadCloseout(${item.id})">Upload Close-out</button><button class="upload-btn-small" onclick="editRemarks(${item.id})">Remarks</button></div>
-      </div>`;
-    container.appendChild(div);
-  });
-  document.getElementById('sync-dot').style.background = "#22c55e";
-}
-
-function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){return m==='&'?'&amp;':m==='<'?'&lt;':'&gt;';}); }
-
-async function updateStatus(selectEl) {
-  const id = parseInt(selectEl.dataset.id);
-  const newStatus = selectEl.value;
-  const item = punchItems.find(i => i.id === id);
-  if(!item) return;
-  if(newStatus === 'CLOSED' && (!item.closeoutPhoto || item.closeoutPhoto === '')) {
-    alert("❌ Cannot mark CLOSED without a CLOSE-OUT photo. Upload one first.");
-    selectEl.value = item.status;
-    return;
-  }
-  if(newStatus === 'CLOSED' && item.status !== 'CLOSED') {
-    const remark = prompt("Optional closing remarks:", item.remarks || "");
-    if(remark !== null) item.remarks = remark;
-  }
-  item.status = newStatus;
-  saveLocal();
-  renderAll();
-}
-
-async function uploadCloseout(id) {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if(file) {
-      const base64 = await fileToBase64(file);
-      const item = punchItems.find(i => i.id === id);
-      if(item) { item.closeoutPhoto = base64; saveLocal(); renderAll(); }
-    }
-  };
-  input.click();
-}
-
-function editRemarks(id) {
-  const item = punchItems.find(i => i.id === id);
-  if(item) {
-    const newRem = prompt("Edit remarks (optional):", item.remarks || "");
-    if(newRem !== null) item.remarks = newRem;
-    saveLocal(); renderAll();
-  }
-}
-
-// Add item validation
-async function addItem() {
-  const desc = document.getElementById('f-desc').value.trim();
-  const loc = document.getElementById('f-loc').value.trim();
-  const pri = document.getElementById('f-pri').value;
-  const initStatus = document.getElementById('f-status').value;
-  const remarks = document.getElementById('f-notes').value.trim();
-  const photoFile = document.getElementById('f-photo-in').files[0];
-  if(!desc) { alert("Description required"); return; }
-  if(!loc) { alert("Location required"); return; }
-  if(!photoFile) { alert("Inspection photo required"); return; }
-  const inspectionBase64 = await fileToBase64(photoFile);
-  const newItem = { id: Date.now(), desc, location: loc, priority: pri, status: initStatus, remarks: remarks || "", inspectionPhoto: inspectionBase64, closeoutPhoto: "" };
-  punchItems.unshift(newItem);
-  saveLocal();
-  closeAdd();
-  renderAll();
-  document.getElementById('f-desc').value = ''; document.getElementById('f-loc').value = ''; document.getElementById('f-notes').value = ''; document.getElementById('f-photo-in').value = ''; document.getElementById('photo-in-preview').innerHTML = '';
-}
-
-function openAdd() { document.getElementById('add-backdrop').classList.add('open'); document.getElementById('add-sheet').classList.add('open'); }
-function closeAdd() { document.getElementById('add-backdrop').classList.remove('open'); document.getElementById('add-sheet').classList.remove('open'); }
-function openExport() { document.getElementById('exp-backdrop').classList.add('open'); document.getElementById('exp-sheet').classList.add('open'); }
-function closeExport() { document.getElementById('exp-backdrop').classList.remove('open'); document.getElementById('exp-sheet').classList.remove('open'); }
-function closePreview() { document.getElementById('preview-modal').classList.remove('open'); }
-
-// PDF with Logo - USE RAW GITHUB URL
-const LOGO_URL = "https://raw.githubusercontent.com/engrjai-max/engrjai-max.github.io/main/logo.png";
-
-async function generatePreviewWithLogo() {
-  const inspDate = document.getElementById('exp-date').value;
-  if(!inspDate) { alert("Please select Inspection Date before exporting."); return; }
-  closeExport();
-  
-  // Build table rows
-  let rows = '';
-  punchItems.forEach((item, idx) => {
-    const inspImg = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
-    const closeImg = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
-    rows += `<tr><td style="text-align:center">${idx+1}</td><td>${escapeHtml(item.location)}</td><td>${escapeHtml(item.desc)}</td><td style="text-align:center">${item.priority}</td><td class="pdf-img-cell">${inspImg}</td><td class="pdf-img-cell">${closeImg}</td><td style="text-align:center">${item.status}</td><td>${escapeHtml(item.remarks||'')}</td></tr>`;
-  });
-  
-  // Logo image HTML - using raw GitHub URL
-  const logoHtml = `<img src="${LOGO_URL}" class="pdf-logo" onerror="this.style.display='none'; this.nextSibling.style.display='block';" style="display:inline-block"><span style="display:none; font-size:20px;">🏗️</span>`;
-  
-  const pdfHtml = `
-    <div class="pdf-header-flex">
-      <div style="width:70px;">${logoHtml}</div>
-      <div class="pdf-company-details">
-        <div class="pdf-company-name">TOTAL SAFE DEVELOPMENT CONSTRUCTION INC.</div>
-        <div class="pdf-company-address">#89-91 Sgt. E. Rivera St., Brgy. Pag-ibig sa Nayon, Quezon City, Philippines 1115</div>
-      </div>
-    </div>
-    <div class="pdf-title">QA/QC PUNCHLIST TRACKING FORM</div>
-    <div class="pdf-info-grid">
-      <div><strong>Project:</strong> ${escapeHtml(document.getElementById('exp-proj').value)}</div>
-      <div><strong>Location:</strong> ${escapeHtml(document.getElementById('exp-loc').value)}</div>
-      <div><strong>Inspection Date:</strong> ${inspDate}</div>
-    </div>
-    <div class="pdf-legend">
-      <strong>Status Legend:</strong> 
-      <span class="legend-open"></span> OPEN &nbsp;|&nbsp;
-      <span class="legend-progress"></span> IN PROGRESS &nbsp;|&nbsp;
-      <span class="legend-closed"></span> CLOSED &nbsp;|&nbsp;
-      <span class="legend-void"></span> VOIDED
-    </div>
-    <table class="pdf-table">
-      <thead><tr><th>#</th><th>LOCATION</th><th>DESCRIPTION</th><th>PRI</th><th>INSPECTION PHOTO</th><th>CLOSE-OUT PHOTO</th><th>STATUS</th><th>REMARKS</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div class="pdf-footer">
-      <div>** For Internal Use Only **</div>
-      <div>TSDCI-TGRDC-QAQC-FORM</div>
-    </div>
-  `;
-  document.getElementById('pdf-content').innerHTML = pdfHtml;
-  document.getElementById('preview-modal').classList.add('open');
-}
-
-function downloadPDF() {
-  const btn = document.querySelector('#preview-modal .generate');
-  btn.innerText = "⏳ Generating...";
-  btn.disabled = true;
-  const element = document.getElementById('pdf-content');
-  const opt = { margin: [10,10,10,10], filename: `Punchlist_${Date.now()}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, pagebreak: { mode: ['css', 'legacy'] } };
-  html2pdf().set(opt).from(element).save().then(() => { btn.innerText = "Download PDF"; btn.disabled = false; closePreview(); }).catch(e => { console.error(e); alert("PDF error"); btn.innerText = "Download PDF"; btn.disabled = false; });
-}
-
-function initApp() {
-  loadLocal();
-  document.querySelectorAll('.filter-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      currentFilter = chip.getAttribute('data-filter');
-      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      renderAll();
+        <div class="photo-strip">
+          <div>📸 Insp:</div> ${inspThumb}
+          <div>🔒 Close-out:</div> ${closeThumb}
+          <button class="upload-btn-small" onclick="uploadCloseout('${item.firebaseKey}')">Upload Close-out</button>
+          <button class="upload-btn-small" onclick="editRemarks('${item.firebaseKey}')">Remarks</button>
+        </div>
+      `;
+      container.appendChild(div);
     });
-  });
-  document.getElementById('exp-date').valueAsDate = new Date();
-  document.getElementById('f-photo-in').addEventListener('change', (e) => {
+  }
+
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
+  async function updateField(selectEl, field) {
+    const firebaseKey = selectEl.dataset.key;
+    const newValue = selectEl.value;
+    await updateItemInFB(firebaseKey, { [field]: newValue });
+  }
+
+  async function updateFieldWithCloseoutCheck(selectEl, field) {
+    const firebaseKey = selectEl.dataset.key;
+    const newStatus = selectEl.value;
+    const item = punchItems.find(i => i.firebaseKey === firebaseKey);
+    if (!item) return;
+    if (newStatus === 'CLOSED' && (!item.closeoutPhoto || item.closeoutPhoto === '')) {
+      alert("❌ Cannot mark CLOSED without a CLOSE-OUT photo. Upload one first.");
+      selectEl.value = item.status;
+      return;
+    }
+    if (newStatus === 'CLOSED' && item.status !== 'CLOSED') {
+      const remark = prompt("Optional closing remarks:", item.remarks || "");
+      if (remark !== null) await updateItemInFB(firebaseKey, { remarks: remark, status: newStatus });
+      else await updateItemInFB(firebaseKey, { status: newStatus });
+    } else {
+      await updateItemInFB(firebaseKey, { [field]: newStatus });
+    }
+  }
+
+  async function uploadCloseout(firebaseKey) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const base64 = await fileToBase64(file);
+        await updateItemInFB(firebaseKey, { closeoutPhoto: base64 });
+      }
+    };
+    input.click();
+  }
+
+  async function editRemarks(firebaseKey) {
+    const item = punchItems.find(i => i.firebaseKey === firebaseKey);
+    if (item) {
+      const newRem = prompt("Edit remarks (optional):", item.remarks || "");
+      if (newRem !== null) await updateItemInFB(firebaseKey, { remarks: newRem });
+    }
+  }
+
+  async function addItem() {
+    const desc = document.getElementById('f-desc').value.trim();
+    const loc = document.getElementById('f-loc').value.trim();
+    const pri = document.getElementById('f-pri').value;
+    const initStatus = document.getElementById('f-status').value;
+    const remarks = document.getElementById('f-notes').value.trim();
+    const photoFile = document.getElementById('f-photo-in').files[0];
+    if (!desc) { alert("Description required"); return; }
+    if (!loc) { alert("Location required"); return; }
+    if (!photoFile) { alert("Inspection photo required"); return; }
+    const inspectionBase64 = await fileToBase64(photoFile);
+    const newItem = {
+      desc, location: loc, priority: pri, status: initStatus, remarks: remarks || "",
+      inspectionPhoto: inspectionBase64, closeoutPhoto: "",
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    };
+    await saveNewItemToFB(newItem);
+    closeAdd();
+    document.getElementById('f-desc').value = '';
+    document.getElementById('f-loc').value = '';
+    document.getElementById('f-notes').value = '';
+    document.getElementById('f-photo-in').value = '';
+    document.getElementById('photo-in-preview').innerHTML = '';
+  }
+
+  // PDF Export with text logo (no image)
+  async function generatePreview() {
+    const inspDate = document.getElementById('exp-date').value;
+    if (!inspDate) { alert("Please select Inspection Date."); return; }
+    closeExport();
+    let rows = '';
+    punchItems.forEach((item, idx) => {
+      const inspImg = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
+      const closeImg = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
+      rows += `<tr><td style="text-align:center">${idx+1}</td><td>${escapeHtml(item.location)}</td><td>${escapeHtml(item.desc)}</td><td style="text-align:center">${item.priority}</td><td class="pdf-img-cell">${inspImg}</td><td class="pdf-img-cell">${closeImg}</td><td style="text-align:center">${item.status}</td><td>${escapeHtml(item.remarks||'')}</td></tr>`;
+    });
+    const pdfHtml = `
+      <div class="pdf-header">
+        <div class="pdf-logo-text">TSDCI</div>
+        <div style="font-size:10px; color:#555;">Quality Assurance & Quality Control</div>
+      </div>
+      <div class="pdf-title">QA/QC PUNCHLIST TRACKING FORM</div>
+      <div class="pdf-info-grid">
+        <div><strong>Project:</strong> ${escapeHtml(document.getElementById('exp-proj').value)}<br><strong>Location:</strong> ${escapeHtml(document.getElementById('exp-loc').value)}</div>
+        <div><strong>Inspection Date:</strong> ${inspDate}</div>
+      </div>
+      <div class="pdf-legend"><strong>Status Legend:</strong> <span class="legend-open"></span> OPEN &nbsp;| <span class="legend-progress"></span> IN PROGRESS &nbsp;| <span class="legend-closed"></span> CLOSED &nbsp;| <span class="legend-void"></span> VOIDED</div>
+      <table class="pdf-table"><thead><tr><th>#</th><th>LOCATION</th><th>DESCRIPTION</th><th>PRI</th><th>INSPECTION PHOTO</th><th>CLOSE-OUT PHOTO</th><th>STATUS</th><th>REMARKS</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="pdf-footer"><div>** For Internal Use Only **</div><div>TSDCI-TGRDC-QAQC-FORM</div></div>
+    `;
+    document.getElementById('pdf-content').innerHTML = pdfHtml;
+    document.getElementById('preview-modal').classList.add('open');
+  }
+
+  function downloadPDF() {
+    const btn = document.querySelector('#preview-modal .generate');
+    btn.innerText = "⏳ Generating...";
+    btn.disabled = true;
+    const element = document.getElementById('pdf-content');
+    const opt = { margin: [10,10,10,10], filename: `Punchlist_${Date.now()}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
+    html2pdf().set(opt).from(element).save().then(() => { btn.innerText = "Download PDF"; btn.disabled = false; closePreview(); }).catch(e => { alert("PDF error"); btn.innerText = "Download PDF"; btn.disabled = false; });
+  }
+
+  // UI helpers
+  function openAdd() { document.getElementById('add-backdrop').classList.add('open'); document.getElementById('add-sheet').classList.add('open'); }
+  function closeAdd() { document.getElementById('add-backdrop').classList.remove('open'); document.getElementById('add-sheet').classList.remove('open'); }
+  function openExport() { document.getElementById('exp-backdrop').classList.add('open'); document.getElementById('exp-sheet').classList.add('open'); document.getElementById('exp-date').valueAsDate = new Date(); }
+  function closeExport() { document.getElementById('exp-backdrop').classList.remove('open'); document.getElementById('exp-sheet').classList.remove('open'); }
+  function closePreview() { document.getElementById('preview-modal').classList.remove('open'); }
+
+  function initFilters() {
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        currentFilter = chip.dataset.filter;
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        renderAll();
+      });
+    });
+  }
+
+  document.getElementById('f-photo-in')?.addEventListener('change', (e) => {
     const preview = document.getElementById('photo-in-preview');
-    if(e.target.files && e.target.files[0]) {
+    if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
       reader.onload = ev => preview.innerHTML = `<img src="${ev.target.result}" style="max-width:80px; border-radius:6px;">`;
       reader.readAsDataURL(e.target.files[0]);
     } else preview.innerHTML = '';
   });
-}
-// Expose globals
-window.checkPass = checkPass; window.addItem = addItem; window.openAdd = openAdd; window.closeAdd = closeAdd;
-window.openExport = openExport; window.closeExport = closeExport; window.generatePreviewWithLogo = generatePreviewWithLogo;
-window.downloadPDF = downloadPDF; window.closePreview = closePreview; window.updateStatus = updateStatus;
-window.uploadCloseout = uploadCloseout; window.editRemarks = editRemarks;
+
+  window.checkGlobalPassword = checkGlobalPassword;
+  window.addItem = addItem;
+  window.openAdd = openAdd; window.closeAdd = closeAdd;
+  window.openExport = openExport; window.closeExport = closeExport;
+  window.generatePreview = generatePreview; window.downloadPDF = downloadPDF; window.closePreview = closePreview;
+  window.updateField = updateField;
+  window.updateFieldWithCloseoutCheck = updateFieldWithCloseoutCheck;
+  window.uploadCloseout = uploadCloseout;
+  window.editRemarks = editRemarks;
+  initFilters();
 </script>
 </body>
 </html>
