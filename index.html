@@ -28,6 +28,7 @@ body{font-family:-apple-system,"SF Pro Text","Helvetica Neue",sans-serif;backgro
 .gate-input:focus{border-color:var(--accent)}
 .gate-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:14px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
 .gate-btn:active{opacity:.8}
+.gate-btn:disabled{opacity:.5;cursor:not-allowed}
 .gate-err{text-align:center;font-size:13px;color:var(--red);margin-top:12px;min-height:20px}
 
 /* TOPBAR */
@@ -35,4 +36,208 @@ body{font-family:-apple-system,"SF Pro Text","Helvetica Neue",sans-serif;backgro
 .topbar-inner{display:flex;align-items:center;justify-content:space-between;height:52px}
 .app-title{font-size:18px;font-weight:600;letter-spacing:-.3px;display:flex;align-items:center;gap:8px}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .3s}
-.
+.sync-dot.online{background:#22c55e}
+.sync-dot.syncing{background:#f59e0b;animation:pulse 1s infinite}
+.sync-dot.error{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
+.icon-btn:active{background:var(--border)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px}
+.stat{background:var(--surface);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;border:1px solid var(--border)}
+.stat-num{font-size:20px;font-weight:600;line-height:1}
+.stat-lbl{font-size:10px;color:var(--text2);margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+
+/* FILTERS */
+.filters{padding:0 16px 10px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filter-chip{white-space:nowrap;font-size:13px;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s;flex-shrink:0}
+.filter-chip.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+
+/* LIST */
+.list{padding:0 16px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+.item{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:8px;overflow:hidden}
+.item.done{opacity:.55}
+.item-main{padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.item-check{width:22px;height:22px;flex-shrink:0;margin-top:1px;border-radius:50%;border:2px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .15s}
+.item-check.checked{background:var(--green);border-color:var(--green);color:#fff}
+.item-body{flex:1;min-width:0}
+.item-desc{font-size:14px;font-weight:500;line-height:1.4;word-break:break-word}
+.item.done .item-desc{text-decoration:line-through}
+.item-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:3px}
+.badge-critical{background:var(--red-bg);color:var(--red)}
+.badge-high{background:var(--orange-bg);color:var(--orange)}
+.badge-medium{background:var(--amber-bg);color:var(--amber)}
+.badge-low{background:var(--green-bg);color:var(--green)}
+.badge-open{background:var(--accent-bg);color:var(--accent)}
+.badge-inprogress{background:var(--amber-bg);color:var(--amber)}
+.badge-done{background:var(--green-bg);color:var(--green)}
+.badge-gray{background:var(--surface2);color:var(--text2)}
+.item-note{font-size:12px;color:var(--text2);margin-top:5px;line-height:1.5}
+.item-del{flex-shrink:0;background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:2px;border-radius:6px;line-height:1}
+.item-del:active{color:var(--red)}
+
+/* PHOTOS */
+.photos-strip{display:flex;gap:8px;padding:0 14px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;align-items:center}
+.photos-strip::-webkit-scrollbar{display:none}
+.photo-thumb{width:72px;height:72px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);cursor:pointer}
+.photo-thumb:active{opacity:.75}
+.photo-add-btn{width:72px;height:72px;border-radius:8px;flex-shrink:0;border:1.5px dashed var(--border2);background:var(--surface2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:11px;gap:4px}
+.photo-add-icon{font-size:22px;line-height:1}
+.photo-input{display:none}
+
+/* EMPTY / LOADING */
+.empty,.loading{text-align:center;padding:60px 20px;color:var(--text2)}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:.3}
+.empty p,.loading p{font-size:14px}
+.spin{display:inline-block;animation:spin 1s linear infinite;font-size:32px;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));right:20px;width:56px;height:56px;border-radius:50%;background:var(--text);color:var(--bg);border:none;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer;z-index:200;transition:transform .15s}
+.fab:active{transform:scale(.92)}
+
+/* SHEETS */
+.sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;opacity:0;transition:opacity .25s}
+.sheet-backdrop.open{display:block}
+.sheet-backdrop.visible{opacity:1}
+.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:0 16px calc(24px + env(safe-area-inset-bottom,0px));z-index:400;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet.open{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 16px}
+.sheet-title{font-size:17px;font-weight:600;margin-bottom:16px}
+
+/* FORM */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+input[type=text],input[type=date],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 12px;font-size:15px;color:var(--text);font-family:inherit;-webkit-appearance:none;appearance:none;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:70px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.photo-picker-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.photo-picker-thumb{width:68px;height:68px;border-radius:8px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;cursor:pointer}
+.photo-picker-add{width:68px;height:68px;border-radius:8px;flex-shrink:0;border:1.5px dashed var(--border2);background:var(--surface2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:11px;gap:3px}
+.photo-picker-add-icon{font-size:24px;line-height:1}
+.submit-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:14px;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px;font-family:inherit}
+.submit-btn:active{opacity:.8}
+.export-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:14px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+.export-btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}
+.export-btn:active{opacity:.8}
+.proj-fields{background:var(--surface2);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;border:1px solid var(--border)}
+
+/* LIGHTBOX */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:900;align-items:center;justify-content:center;flex-direction:column}
+.lightbox.open{display:flex}
+.lightbox img{max-width:100%;max-height:80dvh;border-radius:8px;object-fit:contain}
+.lightbox-close{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));right:16px;font-size:28px;color:#fff;cursor:pointer;background:rgba(0,0,0,.4);border:none;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.lightbox-del{margin-top:16px;background:var(--red-bg);color:var(--red);border:none;border-radius:var(--radius-sm);padding:10px 24px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.lightbox-counter{color:rgba(255,255,255,.5);font-size:13px;margin-top:10px}
+.bspin{display:inline-block;animation:spin 1s linear infinite}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">📋</div>
+    <h2 class="gate-title">Punchlist</h2>
+    <p class="gate-sub">TSDCI — Authorized access only</p>
+    <input id="gate-input" class="gate-input" type="password" placeholder="Enter password"
+      onkeydown="if(event.key==='Enter')checkPass()"/>
+    <button class="gate-btn" onclick="checkPass()">Unlock</button>
+    <p id="gate-err" class="gate-err"></p>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="app-title">
+      <span>📋 Punchlist</span>
+      <div class="sync-dot" id="sync-dot"></div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="openExport()">⬆</button>
+    </div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat"><div class="stat-num" id="cnt-open" style="color:var(--accent)">0</div><div class="stat-lbl">Open</div></div>
+  <div class="stat"><div class="stat-num" id="cnt-high" style="color:var(--red)">0</div><div class="stat-lbl">Critical</div></div>
+  <div class="stat"><div class="stat-num" id="cnt-prog" style="color:var(--amber)">0</div><div class="stat-lbl">Active</div></div>
+  <div class="stat"><div class="stat-num" id="cnt-done" style="color:var(--green)">0</div><div class="stat-lbl">Done</div></div>
+</div>
+
+<div class="filters">
+  <div class="filter-chip active" onclick="setFilter('all',this)">All</div>
+  <div class="filter-chip" onclick="setFilter('open',this)">Open</div>
+  <div class="filter-chip" onclick="setFilter('inprogress',this)">In progress</div>
+  <div class="filter-chip" onclick="setFilter('done',this)">Done</div>
+  <div class="filter-chip" onclick="setFilter('critical',this)">🔴 Critical</div>
+  <div class="filter-chip" onclick="setFilter('high',this)">🟠 High</div>
+</div>
+
+<div class="list" id="list">
+  <div class="loading"><div class="spin">⏳</div><p>Connecting…</p></div>
+</div>
+
+<button class="fab" onclick="openAdd()">+</button>
+
+<input type="file" class="photo-input" id="photo-input-form" accept="image/*" multiple onchange="handleFormPhotos(event)">
+<input type="file" class="photo-input" id="photo-input-item" accept="image/*" multiple onchange="handleItemPhotos(event)">
+
+<div class="sheet-backdrop" id="add-backdrop" onclick="closeAdd()"></div>
+<div class="sheet" id="add-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Add punchlist item</div>
+  <div class="field"><label>Description *</label><input type="text" id="f-desc" placeholder="e.g. Cracked tile in lobby corridor…"/></div>
+  <div class="field"><label>Location / Area</label><input type="text" id="f-loc" placeholder="e.g. Unit 3B, Floor 2…"/></div>
+  <div class="form-grid">
+    <div class="field"><label>Priority</label>
+      <select id="f-pri">
+        <option value="critical">🔴 Critical</option>
+        <option value="high">🟠 High</option>
+        <option value="medium" selected>🟡 Medium</option>
+        <option value="low">🟢 Low</option>
+      </select>
+    </div>
+    <div class="field"><label>Due date</label><input type="date" id="f-due"/></div>
+  </div>
+  <div class="field"><label>Assigned to</label><input type="text" id="f-assign" placeholder="Name or trade…"/></div>
+  <div class="field"><label>Notes</label><textarea id="f-notes" placeholder="Additional details, measurements…"></textarea></div>
+  <div class="field">
+    <label>Photos</label>
+    <div class="photo-picker-row" id="form-photo-row">
+      <div class="photo-picker-add" onclick="triggerFormPhoto()">
+        <span class="photo-picker-add-icon">📷</span><span>Add photo</span>
+      </div>
+    </div>
+  </div>
+  <button class="submit-btn" onclick="addItem()">Add to punchlist</button>
+</div>
+
+<div class="sheet-backdrop" id="exp-backdrop" onclick="closeExport()"></div>
+<div class="sheet" id="exp-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Export</div>
+  <div class="proj-fields">
+    <div class="field" style="margin-bottom:8px"><label>Project name</label><input type="text" id="exp-proj" placeholder="Project name…"/></div>
+    <div class="field" style="margin-bottom:8px"><label>Project location</label><input type="text" id="exp-loc" value="Brgy. Tambubong, San Rafael, Bulacan" placeholder="Project location…"/></div>
+    <div class="field" style="margin-bottom:0"><label>Inspection date</label><input type="date" id="exp-date"/></div>
+  </div>
+  <button class="export-btn" id="docx-btn" onclick="exportDocx()">📄 Export as QAQC Form (.docx)</button>
+  <button class="export-btn secondary" onclick="copyExportText()">📋 Copy as plain text</button>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="Photo" onclick="event.stopPropagation()">
+  <div class="lightbox-counter" id="lightbox-counter"></div>
+  <button class="lightbox-del" onclick="deleteCurrentPhoto(event)">🗑 Delete photo</button>
+</div>
+
+<script>
+// ── LOGO ──
+const LOGO_B64 = "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
