@@ -11,6 +11,28 @@
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+// ── PASSWORD GATE ──
+const PASS = 'kotendorm'; // ← change this
+const SESSION_KEY = 'pl_auth';
+
+function checkPass() {
+  const val = document.getElementById('gate-input').value;
+  if (val === PASS) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('gate').style.display = 'none';
+  } else {
+    const err = document.getElementById('gate-err');
+    err.style.display = 'block';
+    document.getElementById('gate-input').value = '';
+    document.getElementById('gate-input').focus();
+    setTimeout(() => err.style.display = 'none', 3000);
+  }
+}
+
+// Check on load — hide gate if already authenticated this session
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('gate').style.display = 'none';
+}
 <!-- JSZip for docx export -->
 <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
