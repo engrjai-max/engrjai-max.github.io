@@ -114,7 +114,7 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
 </div>
 
 <div id="main-app" style="display:none">
-<div class="topbar"><div class="topbar-inner"><div class="app-title"><span>📋 Punchlist</span><div class="sync-dot" id="sync-dot"></div></div><div><button class="icon-btn" onclick="openExport()">⬆</button></div></div></div>
+<div class="topbar"><div class="topbar-inner"><div class="app-title"><span>📋 Punchlist</span><div class="sync-dot" id="sync-dot"></div></div><div style="display:flex;gap:8px"><div style="display:flex;gap:8px"><button class="icon-btn" onclick="openExport()">⬆</button><button class="icon-btn" onclick="logout()" title="Lock">🔒</button></div></div></div>
 <div class="stats-row"><div class="stat"><div class="stat-num" id="cnt-open">0</div><div class="stat-lbl">Open</div></div><div class="stat"><div class="stat-num" id="cnt-high">0</div><div class="stat-lbl">Critical (H)</div></div><div class="stat"><div class="stat-num" id="cnt-prog">0</div><div class="stat-lbl">In Progress</div></div><div class="stat"><div class="stat-num" id="cnt-done">0</div><div class="stat-lbl">Closed</div></div></div>
 <div class="filters" id="filters-container">
   <div class="filter-chip active" data-filter="all">All</div>
@@ -548,7 +548,10 @@ document.getElementById('f-photo-in')?.addEventListener('change', (e) => {
     reader.readAsDataURL(e.target.files[0]);
   } else preview.innerHTML = '';
 });
-
+function logout() {
+  auth.signOut();
+}
+window.logout = logout;
 window.checkPassword = checkPassword;
 window.addItem = addItem;
 window.openAdd = openAdd; window.closeAdd = closeAdd;
