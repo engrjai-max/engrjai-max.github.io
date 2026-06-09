@@ -13,38 +13,35 @@
 <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-/* === same styles as before – kept compact === */
+*{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f5f4f0;--surface:#fff;--surface2:#eeede9;--border:rgba(0,0,0,.10);--border2:rgba(0,0,0,.18);--text:#1a1917;--text2:#6b6860;--accent:#1d4ed8;--red:#b91c1c;--green:#166534;--radius:12px;--radius-sm:8px}
 @media(prefers-color-scheme:dark){:root{--bg:#111110;--surface:#1c1c1a;--surface2:#252523;--border:rgba(255,255,255,.08);--text:#f0efe9;--text2:#a09e99;--accent:#60a5fa;--red:#fca5a5;--green:#86efac}}
-*{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,"SF Pro Text",sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;font-size:15px}
 #gate{display:flex;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;padding:24px}
 .gate-box{width:100%;max-width:360px}
 .gate-logo{font-size:36px;text-align:center}
 .gate-title{font-size:20px;font-weight:600;text-align:center}
 .gate-sub{font-size:13px;color:var(--text2);margin-bottom:20px;text-align:center}
-.gate-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;font-size:16px;margin-bottom:12px;color:var(--text);font-family:inherit;outline:none}
+.gate-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;font-size:16px;margin-bottom:12px}
 .gate-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:env(safe-area-inset-top,0) 16px 0;position:sticky;top:0;z-index:100}
-.topbar-inner{display:flex;justify-content:space-between;align-items:center;height:52px}
+.topbar-inner{display:flex;justify-content:space-between;align-items:center;height:52px;flex-wrap:wrap;gap:8px}
 .app-title{font-size:18px;font-weight:600;display:flex;gap:8px;align-items:center}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:#9ca3af}
 .sync-dot.online{background:#22c55e}
 .sync-dot.syncing{background:#f59e0b;animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-.topbar-btns{display:flex;gap:8px;align-items:center}
+.topbar-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
 .offline-toggle{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:0 8px;height:36px;cursor:pointer;font-size:13px}
-.offline-toggle input{width:34px;height:18px;margin:0;cursor:pointer}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px}
 .stat{background:var(--surface);border-radius:var(--radius-sm);padding:10px;text-align:center;border:1px solid var(--border)}
 .stat-num{font-size:20px;font-weight:600}
 .stat-lbl{font-size:10px;color:var(--text2)}
-.filters{padding:0 16px 10px;display:flex;gap:6px;overflow-x:auto;align-items:center;scrollbar-width:none}
-.filters::-webkit-scrollbar{display:none}
+.filters{padding:0 16px 10px;display:flex;gap:6px;overflow-x:auto;align-items:center}
 .filter-chip{white-space:nowrap;font-size:13px;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;flex-shrink:0}
 .filter-chip.active{background:var(--text);color:var(--bg)}
-.select-actions{display:flex;gap:8px;margin-left:auto;flex-shrink:0}
+.select-actions{display:flex;gap:8px;margin-left:auto}
 .select-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer}
 .list{padding:0 16px 80px}
 .item{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:10px;padding:14px}
@@ -68,8 +65,8 @@ body{font-family:-apple-system,"SF Pro Text",sans-serif;background:var(--bg);col
 .photo-thumb img{width:70px;height:70px;object-fit:cover;border-radius:8px}
 .photo-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .status-pri-select{display:flex;gap:8px;align-items:center;flex-shrink:0}
-select.small-select{padding:4px 8px;border-radius:16px;background:var(--surface2);border:1px solid var(--border2);font-size:12px;color:var(--text)}
-.upload-btn-small{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap}
+select.small-select{padding:4px 8px;border-radius:16px;background:var(--surface2);border:1px solid var(--border2);font-size:12px}
+.upload-btn-small{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer}
 .fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--text);color:var(--bg);border:none;font-size:28px;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;z-index:200}
 .sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;opacity:0;transition:opacity .25s}
 .sheet-backdrop.open{display:block;opacity:1}
@@ -79,10 +76,9 @@ select.small-select{padding:4px 8px;border-radius:16px;background:var(--surface2
 .sheet-title{font-size:18px;font-weight:600;margin-bottom:16px}
 .field{margin-bottom:14px}
 .field label{font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px}
-input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px;font-size:15px;color:var(--text)}
+input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px;font-size:15px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .submit-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer;margin-top:8px}
-.submit-btn:disabled{opacity:.5}
 .export-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer;display:flex;gap:8px;justify-content:center}
 .upload-progress{font-size:12px;color:var(--text2);margin-top:6px;display:none}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#166534;color:#fff;padding:10px 20px;border-radius:40px;font-size:14px;z-index:1000;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
@@ -127,7 +123,7 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
   <div class="topbar-inner">
     <div class="app-title"><span>📋 Punchlist</span><div class="sync-dot" id="sync-dot"></div></div>
     <div class="topbar-btns">
-      <label class="offline-toggle" title="Offline mode stores data locally, no sync">
+      <label class="offline-toggle">
         <span id="offline-label">🌐 Online</span>
         <input type="checkbox" id="offline-toggle">
       </label>
@@ -188,7 +184,6 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
   <button class="export-btn" onclick="generatePreview()">Preview & Export PDF</button>
 </div>
 
-<!-- PDF PREVIEW MODAL -->
 <div id="preview-modal">
   <div class="preview-header"><button onclick="closePreview()" style="background:none;border:none;font-size:24px;cursor:pointer">✕</button><button class="export-btn" style="width:auto;padding:10px 20px" onclick="downloadPDF()">⬇ Download PDF</button></div>
   <div class="preview-body"><div id="pdf-content"></div></div>
@@ -196,7 +191,7 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
 </div>
 
 <script>
-// ========== FIREBASE CONFIG (your existing) ==========
+// ========== FIREBASE ==========
 const firebaseConfig = {
   apiKey: "AIzaSyD4PgBtM4AEmnvMQ7sqSVwWTXzAJgc_IWI",
   authDomain: "punchlist-57de5.firebaseapp.com",
@@ -208,26 +203,26 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-const db   = firebase.database();
+const db = firebase.database();
 
-// ========== SUPABASE CONFIG (your credentials) ==========
+// ========== SUPABASE ==========
 const SUPABASE_URL = "https://tudgvrobjiaqvsupowyh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1ZGd2cm9iamlhcXZzdXBvd3loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5ODcyNDMsImV4cCI6MjA5NjU2MzI0M30.y0rXQQKq1LD8dvXuVMH89-HGDhRgPJODJh7e2Ot4bvs";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const STORAGE_BUCKET = "tsdci-kotendorm";   // your bucket name
+const STORAGE_BUCKET = "tsdci-kotendorm";
 
 const FIXED_EMAIL = "kotendorm@phase5.com";
 let punchItems = [];
 let currentFilter = "all";
 let dbRef = null;
 let selectedItemIds = new Set();
-let offlineMode = false;    // will be loaded from localStorage
+let offlineMode = false;
 
-// Offline storage (IndexedDB)
+// Offline storage
 const offlineStore = localforage.createInstance({ name: "punchlist_offline" });
 
-// Helper: compress image to base64 (for offline mode)
-function compressImageToBase64(file, maxPx = 1200, quality = 0.75) {
+// Helper: compress and optionally convert to base64
+async function compressImageToBlob(file, maxPx = 1200, quality = 0.75) {
   return new Promise(resolve => {
     const reader = new FileReader();
     reader.onload = e => {
@@ -241,21 +236,25 @@ function compressImageToBase64(file, maxPx = 1200, quality = 0.75) {
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        canvas.toBlob(blob => {
-          const fr = new FileReader();
-          fr.onload = () => resolve(fr.result);
-          fr.readAsDataURL(blob);
-        }, 'image/jpeg', quality);
+        canvas.toBlob(resolve, 'image/jpeg', quality);
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   });
 }
+async function compressImageToBase64(file, maxPx = 1200, quality = 0.75) {
+  const blob = await compressImageToBlob(file, maxPx, quality);
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
 
-// Online upload to Supabase (public bucket)
+// Online upload to Supabase
 async function uploadPhotoToSupabase(file, bucketPath, onProgress) {
-  const blob = await (await fetch(await compressImageToBase64(file, 1200, 0.75))).blob();
+  const blob = await compressImageToBlob(file);
   const { data, error } = await supabase.storage.from(STORAGE_BUCKET).upload(bucketPath, blob, {
     cacheControl: '3600',
     onUploadProgress: (p) => onProgress && onProgress(Math.round((p.loaded / p.total) * 100))
@@ -268,7 +267,7 @@ async function deletePhotoFromSupabase(path) {
   if (path) await supabase.storage.from(STORAGE_BUCKET).remove([path]).catch(()=>{});
 }
 
-// === Offline data helpers ===
+// Offline data helpers
 async function loadOfflineData() { return (await offlineStore.getItem('punchlist')) || []; }
 async function saveOfflineData(items) { await offlineStore.setItem('punchlist', items); }
 async function addOfflineItem(item) {
@@ -289,7 +288,7 @@ async function deleteOfflineItems(keys) {
   await saveOfflineData(items);
 }
 
-// Main render (shared for both modes)
+// Render shared
 function renderAll() {
   document.getElementById('cnt-open').innerText = punchItems.filter(i => i.status !== 'CLOSED' && i.status !== 'VOIDED').length;
   document.getElementById('cnt-high').innerText = punchItems.filter(i => i.priority === 'H').length;
@@ -312,14 +311,14 @@ function renderAll() {
       <div class="item-row">
         <div class="item-check"><input type="checkbox" data-key="${item.firebaseKey}" ${isChecked?'checked':''} onchange="toggleSelect('${item.firebaseKey}',this.checked)"></div>
         <div class="item-details">
-          <div class="item-desc">${escHtml(item.desc)}</div>
+          <div class="item-desc">${escapeHtml(item.desc)}</div>
           <div class="item-meta">
-            <span class="badge badge-gray">📍 ${escHtml(item.location)}</span>
+            <span class="badge badge-gray">📍 ${escapeHtml(item.location)}</span>
             <span class="badge ${priClass}">⚠️ ${priLabel}</span>
             <span class="badge ${statusClass}">${item.status}</span>
             <span class="date-info">📅 ${formatDate(item.createdAt)}${item.closedAt?' | ✅ '+formatDate(item.closedAt):''}</span>
           </div>
-          ${item.remarks?`<div style="font-size:12px;color:var(--text2);margin-top:4px">📝 ${escHtml(item.remarks)}</div>`:''}
+          ${item.remarks?`<div style="font-size:12px;color:var(--text2);margin-top:4px">📝 ${escapeHtml(item.remarks)}</div>`:''}
         </div>
         <div class="status-pri-select">
           <select class="small-select" data-key="${item.firebaseKey}" onchange="updatePriority(this)"><option value="H" ${item.priority==='H'?'selected':''}>🔴 High</option><option value="M" ${item.priority==='M'?'selected':''}>🟡 Medium</option><option value="L" ${item.priority==='L'?'selected':''}>🟢 Low</option></select>
@@ -332,10 +331,10 @@ function renderAll() {
   updateSelectAllUI();
 }
 
-function escHtml(s) { return String(s||'').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+function escapeHtml(s) { return String(s||'').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 function formatDate(ts) { return ts ? new Date(ts).toLocaleDateString('en-PH') : '—'; }
 
-// Switching between online and offline modes
+// Switching modes
 async function switchToOnline() {
   if (dbRef) dbRef.off();
   setSyncDot('syncing');
@@ -357,18 +356,17 @@ async function switchToOnline() {
 async function switchToOffline() {
   if (dbRef) dbRef.off();
   setSyncDot('syncing');
-  const offlineItems = await loadOfflineData();
-  punchItems = offlineItems;
+  punchItems = await loadOfflineData();
   selectedItemIds.clear();
   renderAll();
-  setSyncDot('online'); // no sync, but dot shows online (no connection indicator)
+  setSyncDot('online');
   showToast('Offline mode – all changes saved locally');
 }
 
-// Toggle handler
+// Toggle logic
 const toggleCheckbox = document.getElementById('offline-toggle');
 const offlineLabel = document.getElementById('offline-label');
-async function toggleOfflineMode(e) {
+async function toggleOfflineMode() {
   const newMode = toggleCheckbox.checked;
   if (newMode === offlineMode) return;
   if (newMode && !offlineMode) {
@@ -393,7 +391,7 @@ async function toggleOfflineMode(e) {
 }
 toggleCheckbox.addEventListener('change', toggleOfflineMode);
 
-// Initialization after login
+// Init after login
 async function initAfterLogin() {
   const savedPref = localStorage.getItem('offlineModePref');
   offlineMode = savedPref === 'true';
@@ -431,7 +429,7 @@ async function checkPassword() {
 function logout() { auth.signOut(); }
 function setSyncDot(s) { document.getElementById('sync-dot').className = 'sync-dot ' + s; }
 
-// CRUD operations (aware of offline mode)
+// CRUD with offline awareness
 async function addItem() {
   const desc = document.getElementById('f-desc').value.trim();
   const loc = document.getElementById('f-loc').value.trim();
@@ -474,7 +472,7 @@ async function addItem() {
     document.getElementById('f-desc').value = ''; document.getElementById('f-loc').value = ''; document.getElementById('f-notes').value = ''; document.getElementById('f-photo-in').value = ''; document.getElementById('photo-in-preview').innerHTML = '';
     showToast('✓ Item added');
     if (offlineMode) renderAll();
-  } catch(err) { showToast('❌ Failed'); console.error(err); }
+  } catch(err) { showToast('❌ Failed: '+err.message); console.error(err); }
   finally { btn.disabled = false; btn.innerText = 'Create Item'; prog.style.display = 'none'; }
 }
 
@@ -537,7 +535,7 @@ async function uploadCloseout(key) {
   input.click();
 }
 async function editRemarks(key) {
-  const item = offlineMode ? (await loadOfflineData()).find(i => i.firebaseKey === key) : punchItems.find(i => i.firebaseKey === key);
+  let item = offlineMode ? (await loadOfflineData()).find(i => i.firebaseKey === key) : punchItems.find(i => i.firebaseKey === key);
   if (!item) return;
   const rem = prompt("Edit remarks:", item.remarks || "");
   if (rem !== null) {
@@ -585,15 +583,15 @@ function updateSelectAllUI() {
   btn.innerText = (filtered.length > 0 && filtered.every(i => selectedItemIds.has(i.firebaseKey))) ? '☑ Deselect All' : '☐ Select All';
 }
 
-// PDF generation (unchanged logic, uses punchItems)
+// PDF generation
 const LOGO_URL = "https://raw.githubusercontent.com/engrjai-max/engrjai-max.github.io/main/logo.png";
 function generatePreviewForItems(itemsToExport) {
   const inspDate = document.getElementById('exp-date').value;
   if (!inspDate) { alert("Select Inspection Date"); return null; }
   if (!itemsToExport.length) return null;
   const rowsPerPage = 14;
-  const projName = escHtml(document.getElementById('exp-proj').value);
-  const projLoc = escHtml(document.getElementById('exp-loc').value);
+  const projName = escapeHtml(document.getElementById('exp-proj').value);
+  const projLoc = escapeHtml(document.getElementById('exp-loc').value);
   let allPages = '';
   for (let p=0; p<itemsToExport.length; p+=rowsPerPage) {
     const page = itemsToExport.slice(p, p+rowsPerPage);
@@ -602,10 +600,10 @@ function generatePreviewForItems(itemsToExport) {
       const n = p+idx+1;
       const inspImg = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
       const closeImg = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
-      rows += `<tr><td style="text-align:center;width:3%">${n}</td><td style="width:14%">${escHtml(item.location)}</td><td style="width:20%">${escHtml(item.desc)}</td><td style="text-align:center;width:4%">${item.priority}</td><td style="text-align:center;width:17%">${inspImg}</td><td style="text-align:center;width:17%">${closeImg}</td><td style="text-align:center;width:6%">${item.status}</td><td style="width:6%">${formatDate(item.createdAt)}<br>${item.closedAt?formatDate(item.closedAt):'—'}</td><td style="width:13%">${escHtml(item.remarks||'')}</td></tr>`;
+      rows += `<tr><td style="text-align:center;width:3%">${n}</td><td style="width:14%">${escapeHtml(item.location)}</td><td style="width:20%">${escapeHtml(item.desc)}</td><td style="text-align:center;width:4%">${item.priority}</td><td style="text-align:center;width:17%">${inspImg}</td><td style="text-align:center;width:17%">${closeImg}</td><td style="text-align:center;width:6%">${item.status}</td><td style="width:6%">${formatDate(item.createdAt)}<br>${item.closedAt?formatDate(item.closedAt):'—'}</td><td style="width:13%">${escapeHtml(item.remarks||'')}</td></tr>`;
     });
     const legend = p===0 ? `<div class="pdf-legend-container"><strong>Status Legend:</strong><table class="pdf-legend-table"><tr><td style="background:#22c55e">OPEN</td><td style="background:#eab308">IN PROGRESS</td><td style="background:#3b82f6;color:#fff">FOR VERIFICATION</td><td style="background:#d946ef;color:#fff">CLOSED</td><td style="background:#9ca3af">VOIDED</td></tr></table></div>` : '';
-    allPages += `<div class="pdf-page"><div class="pdf-header-logo"><img src="${LOGO_URL}" class="pdf-logo-img" onerror="this.style.display='none'"></div><div class="pdf-title">QA/QC PUNCHLIST TRACKING FORM</div><div class="pdf-info-grid"><div><strong>Project:</strong> ${projName}<br><strong>Location:</strong> ${projLoc}</div><div><strong>Inspection Date:</strong> ${inspDate}</div></div>${legend}<table class="pdf-table"><thead><tr><th>#</th><th>LOCATION</th><th>DESCRIPTION</th><th>PRI</th><th>INSPECTION PHOTO</th><th>CLOSE-OUT PHOTO</th><th>STATUS</th><th>DATES</th><th>REMARKS</th></tr></thead><tbody>${rows}</tbody></table><div class="pdf-footer"><div>** For Internal Use Only **</div><div>TSDCI-TGRDC-QAQC-FORM</div></div></div>`;
+    allPages += `<div class="pdf-page"><div class="pdf-header-logo"><img src="${LOGO_URL}" class="pdf-logo-img" onerror="this.style.display='none'"></div><div class="pdf-title">QA/QC PUNCHLIST TRACKING FORM</div><div class="pdf-info-grid"><div><strong>Project:</strong> ${projName}<br><strong>Location:</strong> ${projLoc}</div><div><strong>Inspection Date:</strong> ${inspDate}</div></div>${legend}<table class="pdf-table"><thead><tr><th style="width:3%">#</th><th style="width:14%">LOCATION</th><th style="width:20%">DESCRIPTION</th><th style="width:4%">PRI</th><th style="width:17%">INSPECTION PHOTO</th><th style="width:17%">CLOSE-OUT PHOTO</th><th style="width:6%">STATUS</th><th style="width:6%">DATES</th><th style="width:13%">REMARKS</th></tr></thead><tbody>${rows}</tbody></table><div class="pdf-footer"><div>** For Internal Use Only **</div><div>TSDCI-TGRDC-QAQC-FORM</div></div></div>`;
   }
   return allPages;
 }
@@ -624,17 +622,10 @@ function closeExport() { document.getElementById('exp-backdrop').classList.remov
 function closePreview() { document.getElementById('preview-modal').classList.remove('open'); }
 function showToast(msg) { const t = document.getElementById('toastMsg'); t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2500); }
 
-// Preview for inspection photo in form
 document.getElementById('f-photo-in').addEventListener('change', e => {
   const preview = document.getElementById('photo-in-preview');
-  if(e.target.files && e.target.files[0]){
-    const reader = new FileReader();
-    reader.onload = ev => preview.innerHTML = `<img src="${ev.target.result}" style="max-width:80px;border-radius:6px;margin-top:4px">`;
-    reader.readAsDataURL(e.target.files[0]);
-  } else preview.innerHTML = '';
+  if(e.target.files && e.target.files[0]){ const reader = new FileReader(); reader.onload = ev => preview.innerHTML = `<img src="${ev.target.result}" style="max-width:80px;border-radius:6px;margin-top:4px">`; reader.readAsDataURL(e.target.files[0]); } else preview.innerHTML = '';
 });
-
-// Filters
 document.querySelectorAll('.filter-chip').forEach(chip => chip.addEventListener('click', () => {
   currentFilter = chip.dataset.filter;
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
@@ -643,7 +634,7 @@ document.querySelectorAll('.filter-chip').forEach(chip => chip.addEventListener(
   renderAll();
 }));
 
-// Expose globals to inline event handlers
+// Expose globals
 window.checkPassword = checkPassword; window.logout = logout;
 window.addItem = addItem; window.openAdd = openAdd; window.closeAdd = closeAdd;
 window.openExport = openExport; window.closeExport = closeExport;
