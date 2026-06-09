@@ -6,9 +6,8 @@ import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineI
 import { state } from './state.js';
 
 // ── Sync indicator ────────────────────────────────────────
-function getSyncDot() { return document.getElementById('sync-dot'); }
 export function setSyncStatus(status) {
-  const dot = getSyncDot();
+  const dot = document.getElementById('sync-dot');
   if (dot) dot.className = `sync-dot ${status}`;
 }
 
@@ -23,69 +22,67 @@ export async function fetchOnlineItems() {
 
   setSyncStatus('online');
   return data.map(item => ({
-    id: item.id,
-    firebaseKey: item.id,
-    desc: item.description,
-    location: item.location,
-    priority: item.priority,
-    status: item.status,
-    remarks: item.remarks,
-    inspectionPhoto:     item.inspection_photo_url,
-    inspectionPhotoPath: item.inspection_photo_path,
-    closeoutPhoto:       item.closeout_photo_url,
-    closeoutPhotoPath:   item.closeout_photo_path,
-    createdAt: item.created_at,
-    closedAt:  item.closed_at,
+    id:              item.id,
+    desc:            item.description,
+    location:        item.location,
+    priority:        item.priority,
+    status:          item.status,
+    remarks:         item.remarks,
+    inspectionPhoto: item.inspection_photo,
+    closeoutPhoto:   item.closeout_photo,
+    createdAt:       item.created_at,
+    closedAt:        item.closed_at,
   }));
 }
 
 export async function addOnlineItem(itemData, file) {
   setSyncStatus('syncing');
-  let inspectionPhotoUrl  = '';
-  let inspectionPhotoPath = '';
+  let inspectionPhotoUrl = '';
 
   if (file) {
-    const { url, path } = await uploadImage(file, `inspections/${Date.now()}`);
-    inspectionPhotoUrl  = url;
-    inspectionPhotoPath = path;
+    const { url } = await uploadImage(file, `inspections/${Date.now()}`);
+    inspectionPhotoUrl = url;
   }
-
-  const newItem = {
-    description: itemData.desc,
-    location:    itemData.location,
-    priority:    itemData.priority,
-    status:      itemData.status,
-    remarks:     itemData.remarks || '',
-    inspection_photo_url:  inspectionPhotoUrl,
-    inspection_photo_path: inspectionPhotoPath,
-    closeout_photo_url:    '',
-    closeout_photo_path:   '',
-    created_at: Date.now(),
-    closed_at:  null,
-  };
 
   const { data, error } = await supabaseClient
     .from('punch_items')
-    .insert(newItem)
+    .insert({
+      description:       itemData.desc,
+      location:          itemData.location,
+      priority:          itemData.priority,
+      status:            itemData.status,
+      remarks:           itemData.remarks || '',
+      inspection_photo:  inspectionPhotoUrl,
+      created_at:        new Date().toISOString(),
+    })
     .select()
     .single();
   if (error) throw error;
 
   setSyncStatus('online');
-  return { ...data, firebaseKey: data.id, desc: data.description };
+  return {
+    id:              data.id,
+    desc:            data.description,
+    location:        data.location,
+    priority:        data.priority,
+    status:          data.status,
+    remarks:         data.remarks,
+    inspectionPhoto: data.inspection_photo,
+    closeoutPhoto:   data.closeout_photo,
+    createdAt:       data.created_at,
+    closedAt:        data.closed_at,
+  };
 }
 
 export async function updateOnlineItem(id, updates) {
-  await supabaseClient.from('punch_items').update(updates).eq('id', id);
+  const { error } = await supabaseClient.from('punch_items').update(updates).eq('id', id);
+  if (error) throw error;
 }
 
 export async function deleteOnlineItems(ids, itemsList) {
-  for (const id of ids) {
-    const item = itemsList.find(i => i.id === id);
-    if (item?.inspectionPhotoPath) await deleteImage(item.inspectionPhotoPath);
-    if (item?.closeoutPhotoPath)   await deleteImage(item.closeoutPhotoPath);
-  }
-  await supabaseClient.from('punch_items').delete().in('id', ids);
+  // No stored paths to clean up — photos are just URLs in this schema
+  const { error } = await supabaseClient.from('punch_items').delete().in('id', ids);
+  if (error) throw error;
 }
 
 // ── Offline CRUD ──────────────────────────────────────────
@@ -93,19 +90,16 @@ export async function addOfflineItem(itemData, base64Image) {
   const items = await getOfflineItems();
   const newId = `off_${Date.now()}_${Math.random().toString(36)}`;
   const newItem = {
-    id: newId,
-    firebaseKey: newId,
-    desc:     itemData.desc,
-    location: itemData.location,
-    priority: itemData.priority,
-    status:   itemData.status,
-    remarks:  itemData.remarks || '',
-    inspectionPhoto:     base64Image,
-    inspectionPhotoPath: '',
-    closeoutPhoto:       '',
-    closeoutPhotoPath:   '',
-    createdAt: Date.now(),
-    closedAt:  null,
+    id:              newId,
+    desc:            itemData.desc,
+    location:        itemData.location,
+    priority:        itemData.priority,
+    status:          itemData.status,
+    remarks:         itemData.remarks || '',
+    inspectionPhoto: base64Image,
+    closeoutPhoto:   '',
+    createdAt:       new Date().toISOString(),
+    closedAt:        null,
   };
   items.unshift(newItem);
   await saveOfflineItems(items);
@@ -122,8 +116,7 @@ export async function updateOfflineItem(id, updates) {
 }
 
 export async function deleteOfflineItems(ids) {
-  let items = await getOfflineItems();
-  items = items.filter(i => !ids.includes(i.id));
+  const items = (await getOfflineItems()).filter(i => !ids.includes(i.id));
   await saveOfflineItems(items);
 }
 
@@ -136,5 +129,5 @@ export function subscribeToRealtime(onUpdate) {
     .subscribe();
 }
 
-// re-export helpers consumed by other modules
+// re-export for other modules
 export { getOfflineItems, saveOfflineItems };

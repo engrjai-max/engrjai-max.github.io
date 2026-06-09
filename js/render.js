@@ -143,7 +143,7 @@ function attachDynamicEvents() {
       if (newStatus === 'CLOSED' && item.status !== 'CLOSED') {
         const remark = prompt('Closing remarks:', item.remarks || '');
         if (remark !== null) updates.remarks = remark;
-        updates.closed_at = Date.now();
+        updates.closed_at = new Date().toISOString();
       }
       if (state.currentMode === 'online') await updateOnlineItem(id, updates);
       else                                await updateOfflineItem(id, updates);
@@ -164,8 +164,8 @@ function attachDynamicEvents() {
         try {
           if (state.currentMode === 'online') {
             setSyncStatus('syncing');
-            const { url, path } = await uploadImage(file, `closeout/${id}`);
-            await updateOnlineItem(id, { closeout_photo_url: url, closeout_photo_path: path });
+            const { url } = await uploadImage(file, `closeout/${id}`);
+            await updateOnlineItem(id, { closeout_photo: url });
           } else {
             const base64 = await new Promise(res => {
               const rd = new FileReader();
