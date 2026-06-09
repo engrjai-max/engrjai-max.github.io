@@ -5,11 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1a1a2e">
 <title>TSDCI QA/QC Punchlist</title>
+<!-- Firebase + Supabase + localforage -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
+/* === same styles as before – kept compact === */
 :root{--bg:#f5f4f0;--surface:#fff;--surface2:#eeede9;--border:rgba(0,0,0,.10);--border2:rgba(0,0,0,.18);--text:#1a1917;--text2:#6b6860;--accent:#1d4ed8;--red:#b91c1c;--green:#166534;--radius:12px;--radius-sm:8px}
 @media(prefers-color-scheme:dark){:root{--bg:#111110;--surface:#1c1c1a;--surface2:#252523;--border:rgba(255,255,255,.08);--text:#f0efe9;--text2:#a09e99;--accent:#60a5fa;--red:#fca5a5;--green:#86efac}}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -19,7 +23,7 @@ body{font-family:-apple-system,"SF Pro Text",sans-serif;background:var(--bg);col
 .gate-logo{font-size:36px;text-align:center}
 .gate-title{font-size:20px;font-weight:600;text-align:center}
 .gate-sub{font-size:13px;color:var(--text2);margin-bottom:20px;text-align:center}
-.gate-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;font-size:16px;margin-bottom:12px}
+.gate-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;font-size:16px;margin-bottom:12px;color:var(--text);font-family:inherit;outline:none}
 .gate-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:env(safe-area-inset-top,0) 16px 0;position:sticky;top:0;z-index:100}
 .topbar-inner{display:flex;justify-content:space-between;align-items:center;height:52px}
@@ -28,24 +32,29 @@ body{font-family:-apple-system,"SF Pro Text",sans-serif;background:var(--bg);col
 .sync-dot.online{background:#22c55e}
 .sync-dot.syncing{background:#f59e0b;animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.topbar-btns{display:flex;gap:8px;align-items:center}
 .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
+.offline-toggle{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:0 8px;height:36px;cursor:pointer;font-size:13px}
+.offline-toggle input{width:34px;height:18px;margin:0;cursor:pointer}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px}
 .stat{background:var(--surface);border-radius:var(--radius-sm);padding:10px;text-align:center;border:1px solid var(--border)}
 .stat-num{font-size:20px;font-weight:600}
 .stat-lbl{font-size:10px;color:var(--text2)}
-.filters{padding:0 16px 10px;display:flex;gap:6px;overflow-x:auto;align-items:center}
-.filter-chip{white-space:nowrap;font-size:13px;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer}
+.filters{padding:0 16px 10px;display:flex;gap:6px;overflow-x:auto;align-items:center;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filter-chip{white-space:nowrap;font-size:13px;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;flex-shrink:0}
 .filter-chip.active{background:var(--text);color:var(--bg)}
-.select-actions{display:flex;gap:8px;margin-left:auto}
+.select-actions{display:flex;gap:8px;margin-left:auto;flex-shrink:0}
 .select-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer}
 .list{padding:0 16px 80px}
 .item{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:10px;padding:14px}
 .item-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
 .item-check{width:24px;flex-shrink:0;margin-top:2px}
-.item-details{flex:1}
-.item-desc{font-weight:600}
+.item-details{flex:1;min-width:0}
+.item-desc{font-weight:600;word-break:break-word}
 .item-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:12px;align-items:center}
 .badge{font-size:11px;padding:2px 8px;border-radius:20px}
+.badge-gray{background:var(--surface2);color:var(--text2)}
 .badge-critical{background:#fef2f2;color:#b91c1c}
 .badge-high{background:#fff7ed;color:#c2410c}
 .badge-medium{background:#fffbeb;color:#92400e}
@@ -55,12 +64,12 @@ body{font-family:-apple-system,"SF Pro Text",sans-serif;background:var(--bg);col
 .badge-closed{background:#f0fdf4;color:#166534}
 .badge-void{background:#eeede9;color:#6b6860}
 .date-info{font-size:10px;color:var(--text2);margin-left:auto}
-.photo-thumb{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);cursor:pointer}
+.photo-thumb{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px}
+.photo-thumb img{width:70px;height:70px;object-fit:cover;border-radius:8px}
 .photo-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
-.status-pri-select{display:flex;gap:8px;align-items:center}
-select.small-select{padding:4px 8px;border-radius:16px;background:var(--surface2);border:1px solid var(--border2);font-size:12px}
-.upload-btn-small{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer}
-.delete-btn{background:#fee2e2;border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#b91c1c}
+.status-pri-select{display:flex;gap:8px;align-items:center;flex-shrink:0}
+select.small-select{padding:4px 8px;border-radius:16px;background:var(--surface2);border:1px solid var(--border2);font-size:12px;color:var(--text)}
+.upload-btn-small{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap}
 .fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--text);color:var(--bg);border:none;font-size:28px;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;z-index:200}
 .sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;opacity:0;transition:opacity .25s}
 .sheet-backdrop.open{display:block;opacity:1}
@@ -70,33 +79,33 @@ select.small-select{padding:4px 8px;border-radius:16px;background:var(--surface2
 .sheet-title{font-size:18px;font-weight:600;margin-bottom:16px}
 .field{margin-bottom:14px}
 .field label{font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px}
-input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px;font-size:15px}
+input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px;font-size:15px;color:var(--text)}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .submit-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer;margin-top:8px}
-.export-btn{width:100%;background:var(--accent);color:#fff;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer;display:flex;gap:8px;justify-content:center}
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 20px;border-radius:40px;font-size:14px;z-index:1000;opacity:0;transition:opacity 0.3s;pointer-events:none}
+.submit-btn:disabled{opacity:.5}
+.export-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:14px;font-weight:600;cursor:pointer;display:flex;gap:8px;justify-content:center}
+.upload-progress{font-size:12px;color:var(--text2);margin-top:6px;display:none}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#166534;color:#fff;padding:10px 20px;border-radius:40px;font-size:14px;z-index:1000;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
 #preview-modal{display:none;position:fixed;inset:0;background:var(--bg);z-index:900;flex-direction:column}
 #preview-modal.open{display:flex}
 .preview-header{background:var(--surface);padding:16px;display:flex;justify-content:space-between}
 .preview-body{flex:1;overflow:auto;padding:20px;background:#525659}
-#pdf-content{background:#fff;width:100%;max-width:297mm;margin:0 auto;box-sizing:border-box}
-.pdf-page{background:#fff;color:#000;padding:6mm 12mm 8mm 12mm;font-family:Arial,sans-serif;page-break-after:always;break-after:page}
+#pdf-content{background:#fff;width:100%;max-width:297mm;margin:0 auto}
+.pdf-page{background:#fff;color:#000;padding:6mm 12mm 8mm;font-family:Arial,sans-serif;page-break-after:always}
 .pdf-page:last-child{page-break-after:auto}
 .pdf-header-logo{text-align:left;margin-bottom:8px;border-bottom:2px solid #333;padding-bottom:6px}
-.pdf-logo-img{height:55px;width:auto;object-fit:contain}
-.pdf-title{text-align:center;font-weight:bold;background:#eef2ff;padding:4px;margin:6px 0;color:#000;font-size:13px}
-.pdf-info-grid{display:flex;justify-content:space-between;font-size:8.5px;border:1px solid #ccc;padding:5px;margin-bottom:8px;color:#000}
+.pdf-logo-img{height:55px;width:auto}
+.pdf-title{text-align:center;font-weight:bold;background:#eef2ff;padding:4px;margin:6px 0;font-size:13px}
+.pdf-info-grid{display:flex;justify-content:space-between;font-size:8.5px;border:1px solid #ccc;padding:5px;margin-bottom:8px}
 .pdf-legend-container{margin:8px 0;text-align:center}
-.pdf-legend-container strong{font-size:8.5px;display:block;margin-bottom:3px}
+.pdf-legend-container strong{font-size:8.5px}
 .pdf-legend-table{width:100%;border-collapse:collapse;font-size:7.5px}
-.pdf-legend-table td{padding:3px 3px;border:1px solid #000;text-align:center;font-weight:bold;width:20%}
-.pdf-table{width:100%;border-collapse:collapse;font-size:7.5px;color:#000;table-layout:fixed}
-.pdf-table th,.pdf-table td{border:1px solid #000;padding:4px;vertical-align:top;break-inside:avoid;page-break-inside:avoid}
-.pdf-table td{word-wrap:break-word;white-space:normal}
-.pdf-table td:nth-child(4){white-space:nowrap} /* Priority column - no wrap */
-.pdf-table th{background:#e5e7eb;text-align:center}
-.pdf-img{width:100%;height:auto;max-height:70px;object-fit:contain;display:block;margin:0 auto}
-.pdf-footer{text-align:center;font-size:6.5px;border-top:1px solid #ccc;padding-top:5px;margin-top:12px;color:#000}
+.pdf-legend-table td{padding:3px;border:1px solid #000;text-align:center;font-weight:bold;width:20%}
+.pdf-table{width:100%;border-collapse:collapse;font-size:7.5px;table-layout:fixed}
+.pdf-table th,.pdf-table td{border:1px solid #000;padding:4px;vertical-align:top;word-wrap:break-word}
+.pdf-table th{background:#e5e7eb}
+.pdf-img{width:100%;height:auto;max-height:70px;object-fit:contain;margin:0 auto}
+.pdf-footer{text-align:center;font-size:6.5px;border-top:1px solid #ccc;padding-top:5px;margin-top:12px}
 .empty{text-align:center;padding:40px;color:var(--text2)}
 </style>
 </head>
@@ -107,56 +116,87 @@ input,select,textarea{width:100%;background:var(--surface2);border:1px solid var
     <div class="gate-logo">🔨</div>
     <h2 class="gate-title">TSDCI QA/QC Punchlist</h2>
     <p class="gate-sub">Enter project password</p>
-    <input id="gate-password" class="gate-input" type="password" placeholder="Password" />
+    <input id="gate-password" class="gate-input" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')checkPassword()"/>
     <button class="gate-btn" onclick="checkPassword()">Unlock</button>
-    <p id="gate-err" class="gate-err" style="color:var(--red);margin-top:10px"></p>
+    <p id="gate-err" style="color:var(--red);margin-top:10px;font-size:13px;text-align:center"></p>
   </div>
 </div>
 
 <div id="main-app" style="display:none">
-<div class="topbar"><div class="topbar-inner"><div class="app-title"><span>📋 Punchlist</span><div class="sync-dot" id="sync-dot"></div></div><div style="display:flex;gap:8px"><div style="display:flex;gap:8px"><button class="icon-btn" onclick="openExport()">⬆</button><button class="icon-btn" onclick="logout()" title="Lock">🔒</button></div></div></div>
-<div class="stats-row"><div class="stat"><div class="stat-num" id="cnt-open">0</div><div class="stat-lbl">Open</div></div><div class="stat"><div class="stat-num" id="cnt-high">0</div><div class="stat-lbl">Critical (H)</div></div><div class="stat"><div class="stat-num" id="cnt-prog">0</div><div class="stat-lbl">In Progress</div></div><div class="stat"><div class="stat-num" id="cnt-done">0</div><div class="stat-lbl">Closed</div></div></div>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="app-title"><span>📋 Punchlist</span><div class="sync-dot" id="sync-dot"></div></div>
+    <div class="topbar-btns">
+      <label class="offline-toggle" title="Offline mode stores data locally, no sync">
+        <span id="offline-label">🌐 Online</span>
+        <input type="checkbox" id="offline-toggle">
+      </label>
+      <button class="icon-btn" onclick="openExport()" title="Export PDF">⬆</button>
+      <button class="icon-btn" onclick="logout()" title="Lock">🔒</button>
+    </div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat"><div class="stat-num" id="cnt-open">0</div><div class="stat-lbl">Open</div></div>
+  <div class="stat"><div class="stat-num" id="cnt-high">0</div><div class="stat-lbl">Critical (H)</div></div>
+  <div class="stat"><div class="stat-num" id="cnt-prog">0</div><div class="stat-lbl">In Progress</div></div>
+  <div class="stat"><div class="stat-num" id="cnt-done">0</div><div class="stat-lbl">Closed</div></div>
+</div>
+
 <div class="filters" id="filters-container">
   <div class="filter-chip active" data-filter="all">All</div>
   <div class="filter-chip" data-filter="OPEN">Open</div>
   <div class="filter-chip" data-filter="IN PROGRESS">In Progress</div>
+  <div class="filter-chip" data-filter="FOR VERIFICATION">For Verification</div>
   <div class="filter-chip" data-filter="CLOSED">Closed</div>
   <div class="filter-chip" data-filter="VOIDED">Voided</div>
   <div class="select-actions">
     <button class="select-btn" onclick="toggleSelectAll()">☐ Select All</button>
-    <button class="select-btn" onclick="deleteSelected()">🗑 Delete Selected</button>
+    <button class="select-btn" onclick="deleteSelected()">🗑 Delete</button>
   </div>
 </div>
-<div class="list" id="list"><div class="empty">Loading items...</div></div>
-<button class="fab" onclick="openAdd()">+</button>
 
-<div class="toast" id="toastMsg">✓ Item added</div>
+<div class="list" id="list"><div class="empty">Loading items…</div></div>
+<button class="fab" onclick="openAdd()">+</button>
+<div class="toast" id="toastMsg"></div>
 
 <!-- ADD SHEET -->
 <div class="sheet-backdrop" id="add-backdrop" onclick="closeAdd()"></div>
-<div class="sheet" id="add-sheet"><div class="sheet-handle"></div><div class="sheet-title">➕ New Punch Item</div>
-<div class="field"><label>Description *</label><input type="text" id="f-desc" placeholder="e.g., Cracked tile" /></div>
-<div class="field"><label>Location (Room/Floor/Dorm) *</label><input type="text" id="f-loc" placeholder="e.g., Unit 3B, 2nd Floor" /></div>
-<div class="form-grid"><div class="field"><label>Priority *</label><select id="f-pri"><option value="H">🔴 High (H)</option><option value="M" selected>🟡 Medium (M)</option><option value="L">🟢 Low (L)</option></select></div>
-<div class="field"><label>Initial Status</label><select id="f-status"><option value="OPEN">OPEN</option><option value="IN PROGRESS">IN PROGRESS</option><option value="FOR VERIFICATION">FOR VERIFICATION</option></select></div></div>
-<div class="field"><label>📸 INSPECTION PHOTO * (Required)</label><input type="file" id="f-photo-in" accept="image/*" /><div id="photo-in-preview" style="margin-top:6px"></div></div>
-<div class="field"><label>Remarks (Optional)</label><textarea id="f-notes" rows="2"></textarea></div>
-<button class="submit-btn" onclick="addItem()">Create Item</button></div>
+<div class="sheet" id="add-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">➕ New Punch Item</div>
+  <div class="field"><label>Description *</label><input type="text" id="f-desc" placeholder="e.g., Cracked tile"/></div>
+  <div class="field"><label>Location (Room/Floor/Dorm) *</label><input type="text" id="f-loc" placeholder="e.g., Unit 3B, 2nd Floor"/></div>
+  <div class="form-grid">
+    <div class="field"><label>Priority *</label><select id="f-pri"><option value="H">🔴 High (H)</option><option value="M" selected>🟡 Medium (M)</option><option value="L">🟢 Low (L)</option></select></div>
+    <div class="field"><label>Initial Status</label><select id="f-status"><option value="OPEN">OPEN</option><option value="IN PROGRESS">IN PROGRESS</option><option value="FOR VERIFICATION">FOR VERIFICATION</option></select></div>
+  </div>
+  <div class="field"><label>📸 Inspection Photo * (Required)</label><input type="file" id="f-photo-in" accept="image/*"/><div id="photo-in-preview" style="margin-top:6px"></div><div class="upload-progress" id="upload-progress-insp">Uploading… <span id="upload-pct-insp">0</span>%</div></div>
+  <div class="field"><label>Remarks (Optional)</label><textarea id="f-notes" rows="2"></textarea></div>
+  <button class="submit-btn" id="add-btn" onclick="addItem()">Create Item</button>
+</div>
 
 <!-- EXPORT SHEET -->
 <div class="sheet-backdrop" id="exp-backdrop" onclick="closeExport()"></div>
-<div class="sheet" id="exp-sheet"><div class="sheet-handle"></div><div class="sheet-title">📄 Export to PDF</div>
-<div class="field"><label>Project name</label><input type="text" id="exp-proj" value="A Proposed 2-Unit 3-Storey Dormitory Building" /></div>
-<div class="field"><label>Project location</label><input type="text" id="exp-loc" value="Brgy. Tambubong, San Rafael, Bulacan" /></div>
-<div class="field"><label>📅 Inspection Date *</label><input type="date" id="exp-date" required /></div>
-<button class="export-btn" onclick="generatePreview()">Preview & Export PDF</button></div>
+<div class="sheet" id="exp-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">📄 Export to PDF</div>
+  <div class="field"><label>Project name</label><input type="text" id="exp-proj" value="A Proposed 2-Unit 3-Storey Dormitory Building"/></div>
+  <div class="field"><label>Project location</label><input type="text" id="exp-loc" value="Brgy. Tambubong, San Rafael, Bulacan"/></div>
+  <div class="field"><label>📅 Inspection Date *</label><input type="date" id="exp-date" required/></div>
+  <button class="export-btn" onclick="generatePreview()">Preview & Export PDF</button>
+</div>
 
-<div id="preview-modal"><div class="preview-header"><button onclick="closePreview()" style="background:none;border:none;font-size:24px">✕</button><button class="generate" onclick="downloadPDF()">⬇ Download PDF</button></div>
-<div class="preview-body"><div id="pdf-content"></div></div></div>
+<!-- PDF PREVIEW MODAL -->
+<div id="preview-modal">
+  <div class="preview-header"><button onclick="closePreview()" style="background:none;border:none;font-size:24px;cursor:pointer">✕</button><button class="export-btn" style="width:auto;padding:10px 20px" onclick="downloadPDF()">⬇ Download PDF</button></div>
+  <div class="preview-body"><div id="pdf-content"></div></div>
+</div>
 </div>
 
 <script>
-// ========== FIREBASE CONFIG ==========
+// ========== FIREBASE CONFIG (your existing) ==========
 const firebaseConfig = {
   apiKey: "AIzaSyD4PgBtM4AEmnvMQ7sqSVwWTXzAJgc_IWI",
   authDomain: "punchlist-57de5.firebaseapp.com",
@@ -164,407 +204,453 @@ const firebaseConfig = {
   projectId: "punchlist-57de5",
   storageBucket: "punchlist-57de5.firebasestorage.app",
   messagingSenderId: "617429806334",
-  appId: "1:617429806334:web:6480fea0ef2826603ec9af",
-  measurementId: "G-962XRCG4J4"
+  appId: "1:617429806334:web:6480fea0ef2826603ec9af"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-const db = firebase.database();
+const db   = firebase.database();
+
+// ========== SUPABASE CONFIG (your credentials) ==========
+const SUPABASE_URL = "https://tudgvrobjiaqvsupowyh.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1ZGd2cm9iamlhcXZzdXBvd3loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5ODcyNDMsImV4cCI6MjA5NjU2MzI0M30.y0rXQQKq1LD8dvXuVMH89-HGDhRgPJODJh7e2Ot4bvs";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const STORAGE_BUCKET = "tsdci-kotendorm";   // your bucket name
 
 const FIXED_EMAIL = "kotendorm@phase5.com";
 let punchItems = [];
 let currentFilter = "all";
 let dbRef = null;
 let selectedItemIds = new Set();
+let offlineMode = false;    // will be loaded from localStorage
 
+// Offline storage (IndexedDB)
+const offlineStore = localforage.createInstance({ name: "punchlist_offline" });
+
+// Helper: compress image to base64 (for offline mode)
+function compressImageToBase64(file, maxPx = 1200, quality = 0.75) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxPx || h > maxPx) {
+          const r = Math.min(maxPx/w, maxPx/h);
+          w = Math.round(w*r); h = Math.round(h*r);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(blob => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(fr.result);
+          fr.readAsDataURL(blob);
+        }, 'image/jpeg', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Online upload to Supabase (public bucket)
+async function uploadPhotoToSupabase(file, bucketPath, onProgress) {
+  const blob = await (await fetch(await compressImageToBase64(file, 1200, 0.75))).blob();
+  const { data, error } = await supabase.storage.from(STORAGE_BUCKET).upload(bucketPath, blob, {
+    cacheControl: '3600',
+    onUploadProgress: (p) => onProgress && onProgress(Math.round((p.loaded / p.total) * 100))
+  });
+  if (error) throw error;
+  const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(bucketPath);
+  return { publicUrl: pub.publicUrl, path: bucketPath };
+}
+async function deletePhotoFromSupabase(path) {
+  if (path) await supabase.storage.from(STORAGE_BUCKET).remove([path]).catch(()=>{});
+}
+
+// === Offline data helpers ===
+async function loadOfflineData() { return (await offlineStore.getItem('punchlist')) || []; }
+async function saveOfflineData(items) { await offlineStore.setItem('punchlist', items); }
+async function addOfflineItem(item) {
+  const items = await loadOfflineData();
+  item.firebaseKey = Date.now().toString();
+  items.push(item);
+  await saveOfflineData(items);
+  return item.firebaseKey;
+}
+async function updateOfflineItem(key, updates) {
+  let items = await loadOfflineData();
+  const idx = items.findIndex(i => i.firebaseKey === key);
+  if (idx !== -1) { items[idx] = { ...items[idx], ...updates }; await saveOfflineData(items); }
+}
+async function deleteOfflineItems(keys) {
+  let items = await loadOfflineData();
+  items = items.filter(i => !keys.includes(i.firebaseKey));
+  await saveOfflineData(items);
+}
+
+// Main render (shared for both modes)
+function renderAll() {
+  document.getElementById('cnt-open').innerText = punchItems.filter(i => i.status !== 'CLOSED' && i.status !== 'VOIDED').length;
+  document.getElementById('cnt-high').innerText = punchItems.filter(i => i.priority === 'H').length;
+  document.getElementById('cnt-prog').innerText = punchItems.filter(i => i.status === 'IN PROGRESS').length;
+  document.getElementById('cnt-done').innerText = punchItems.filter(i => i.status === 'CLOSED').length;
+  let filtered = currentFilter === 'all' ? punchItems : punchItems.filter(i => i.status === currentFilter);
+  const container = document.getElementById('list');
+  if (!filtered.length) { container.innerHTML = '<div class="empty">📋 No items</div>'; return; }
+  container.innerHTML = '';
+  filtered.forEach(item => {
+    const isChecked = selectedItemIds.has(item.firebaseKey);
+    const statusClass = {OPEN:'badge-open','IN PROGRESS':'badge-progress',CLOSED:'badge-closed',VOIDED:'badge-void','FOR VERIFICATION':'badge-progress'}[item.status] || 'badge-open';
+    const priClass = {H:'badge-critical',M:'badge-medium',L:'badge-low'}[item.priority] || 'badge-medium';
+    const priLabel = {H:'HIGH',M:'MEDIUM',L:'LOW'}[item.priority];
+    const inspThumb = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="photo-thumb" onclick="window.open('${item.inspectionPhoto}')" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);cursor:pointer">` : `<div class="photo-thumb">📷</div>`;
+    const closeThumb = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="photo-thumb" onclick="window.open('${item.closeoutPhoto}')" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);cursor:pointer">` : `<div class="photo-thumb" style="font-size:20px">🔒</div>`;
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div class="item-row">
+        <div class="item-check"><input type="checkbox" data-key="${item.firebaseKey}" ${isChecked?'checked':''} onchange="toggleSelect('${item.firebaseKey}',this.checked)"></div>
+        <div class="item-details">
+          <div class="item-desc">${escHtml(item.desc)}</div>
+          <div class="item-meta">
+            <span class="badge badge-gray">📍 ${escHtml(item.location)}</span>
+            <span class="badge ${priClass}">⚠️ ${priLabel}</span>
+            <span class="badge ${statusClass}">${item.status}</span>
+            <span class="date-info">📅 ${formatDate(item.createdAt)}${item.closedAt?' | ✅ '+formatDate(item.closedAt):''}</span>
+          </div>
+          ${item.remarks?`<div style="font-size:12px;color:var(--text2);margin-top:4px">📝 ${escHtml(item.remarks)}</div>`:''}
+        </div>
+        <div class="status-pri-select">
+          <select class="small-select" data-key="${item.firebaseKey}" onchange="updatePriority(this)"><option value="H" ${item.priority==='H'?'selected':''}>🔴 High</option><option value="M" ${item.priority==='M'?'selected':''}>🟡 Medium</option><option value="L" ${item.priority==='L'?'selected':''}>🟢 Low</option></select>
+          <select class="small-select" data-key="${item.firebaseKey}" onchange="updateStatus(this)"><option value="OPEN" ${item.status==='OPEN'?'selected':''}>OPEN</option><option value="IN PROGRESS" ${item.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option><option value="FOR VERIFICATION" ${item.status==='FOR VERIFICATION'?'selected':''}>FOR VERIFICATION</option><option value="CLOSED" ${item.status==='CLOSED'?'selected':''}>CLOSED</option><option value="VOIDED" ${item.status==='VOIDED'?'selected':''}>VOIDED</option></select>
+        </div>
+      </div>
+      <div class="photo-strip"><div>📸 Insp:</div>${inspThumb}<div>🔒 Close-out:</div>${closeThumb}<button class="upload-btn-small" onclick="uploadCloseout('${item.firebaseKey}')">Upload Close-out</button><button class="upload-btn-small" onclick="editRemarks('${item.firebaseKey}')">Remarks</button></div>`;
+    container.appendChild(div);
+  });
+  updateSelectAllUI();
+}
+
+function escHtml(s) { return String(s||'').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+function formatDate(ts) { return ts ? new Date(ts).toLocaleDateString('en-PH') : '—'; }
+
+// Switching between online and offline modes
+async function switchToOnline() {
+  if (dbRef) dbRef.off();
+  setSyncDot('syncing');
+  const snapshot = await dbRef.once('value');
+  const data = snapshot.val();
+  punchItems = data ? Object.entries(data).map(([k,v]) => ({...v, firebaseKey: k})) : [];
+  selectedItemIds.clear();
+  renderAll();
+  dbRef.on('value', snap => {
+    const newData = snap.val();
+    punchItems = newData ? Object.entries(newData).map(([k,v]) => ({...v, firebaseKey: k})) : [];
+    selectedItemIds.clear();
+    renderAll();
+    setSyncDot('online');
+  }, () => setSyncDot('error'));
+  setSyncDot('online');
+  showToast('Switched to Online mode – data reloaded from cloud');
+}
+async function switchToOffline() {
+  if (dbRef) dbRef.off();
+  setSyncDot('syncing');
+  const offlineItems = await loadOfflineData();
+  punchItems = offlineItems;
+  selectedItemIds.clear();
+  renderAll();
+  setSyncDot('online'); // no sync, but dot shows online (no connection indicator)
+  showToast('Offline mode – all changes saved locally');
+}
+
+// Toggle handler
+const toggleCheckbox = document.getElementById('offline-toggle');
+const offlineLabel = document.getElementById('offline-label');
+async function toggleOfflineMode(e) {
+  const newMode = toggleCheckbox.checked;
+  if (newMode === offlineMode) return;
+  if (newMode && !offlineMode) {
+    if (confirm('Switch to OFFLINE mode? All changes will be saved locally and will NOT sync to cloud. You can switch back later.')) {
+      offlineMode = true;
+      localStorage.setItem('offlineModePref', 'true');
+      await switchToOffline();
+      offlineLabel.innerText = '📴 Offline';
+    } else {
+      toggleCheckbox.checked = false;
+    }
+  } else if (!newMode && offlineMode) {
+    if (confirm('Switch to ONLINE mode? Local offline data will be replaced by cloud data. Any offline changes will be lost. Continue?')) {
+      offlineMode = false;
+      localStorage.setItem('offlineModePref', 'false');
+      await switchToOnline();
+      offlineLabel.innerText = '🌐 Online';
+    } else {
+      toggleCheckbox.checked = true;
+    }
+  }
+}
+toggleCheckbox.addEventListener('change', toggleOfflineMode);
+
+// Initialization after login
+async function initAfterLogin() {
+  const savedPref = localStorage.getItem('offlineModePref');
+  offlineMode = savedPref === 'true';
+  toggleCheckbox.checked = offlineMode;
+  offlineLabel.innerText = offlineMode ? '📴 Offline' : '🌐 Online';
+  dbRef = db.ref('punchlist');
+  if (offlineMode) await switchToOffline();
+  else await switchToOnline();
+}
+
+// Auth
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async user => {
   if (user) {
     document.getElementById('gate').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
-    dbRef = db.ref('punchlist');
-    initRealtimeSync();
+    await initAfterLogin();
   } else {
     document.getElementById('gate').style.display = 'flex';
     document.getElementById('main-app').style.display = 'none';
   }
 });
-
 async function checkPassword() {
   const pwd = document.getElementById('gate-password').value;
   const err = document.getElementById('gate-err');
   if (!pwd) { err.innerText = "Enter password"; return; }
-  err.innerText = "Verifying...";
+  err.innerText = "Verifying…";
   try {
     await auth.signInWithEmailAndPassword(FIXED_EMAIL, pwd);
     err.innerText = "";
-  } catch (e) {
-    if (e.code === 'auth/user-not-found') err.innerText = "User not found.";
-    else if (e.code === 'auth/wrong-password') err.innerText = "Wrong password.";
-    else err.innerText = e.message;
+  } catch(e) {
+    err.innerText = e.code.includes('wrong') ? "Wrong password." : e.message;
   }
 }
+function logout() { auth.signOut(); }
+function setSyncDot(s) { document.getElementById('sync-dot').className = 'sync-dot ' + s; }
 
-function initRealtimeSync() {
-  const dot = document.getElementById('sync-dot');
-  dot.classList.add('syncing');
-  dbRef.on('value', snap => {
-    const data = snap.val();
-    punchItems = data ? Object.entries(data).map(([k,v]) => ({...v, firebaseKey: k})) : [];
-    selectedItemIds.clear();
-    renderAll();
-    dot.classList.remove('syncing');
-    dot.classList.add('online');
-  });
-}
-
-async function saveItem(item) { await dbRef.push().set(item); }
-async function updateItem(key, updates) { await dbRef.child(key).update(updates); }
-async function deleteMultipleItems(keys) {
-  const updates = {};
-  keys.forEach(k => { updates[k] = null; });
-  await dbRef.update(updates);
-}
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function formatDate(timestamp) {
-  if (!timestamp) return '—';
-  const d = new Date(timestamp);
-  return d.toLocaleDateString('en-PH');
-}
-function nowTimestamp() { return Date.now(); }
-
-function showToast(msg) {
-  const toast = document.getElementById('toastMsg');
-  toast.innerText = msg;
-  toast.style.opacity = '1';
-  setTimeout(() => { toast.style.opacity = '0'; }, 2000);
-}
-
-function renderAll() {
-  const openCnt = punchItems.filter(i => i.status !== 'CLOSED' && i.status !== 'VOIDED').length;
-  const highCnt = punchItems.filter(i => i.priority === 'H').length;
-  const progCnt = punchItems.filter(i => i.status === 'IN PROGRESS').length;
-  const doneCnt = punchItems.filter(i => i.status === 'CLOSED').length;
-  document.getElementById('cnt-open').innerText = openCnt;
-  document.getElementById('cnt-high').innerText = highCnt;
-  document.getElementById('cnt-prog').innerText = progCnt;
-  document.getElementById('cnt-done').innerText = doneCnt;
-
-  let filtered = punchItems;
-  if (currentFilter !== 'all') filtered = punchItems.filter(i => i.status === currentFilter);
-  const container = document.getElementById('list');
-  if (!filtered.length) { container.innerHTML = '<div class="empty">📋 No items</div>'; return; }
-
-  container.innerHTML = '';
-  filtered.forEach(item => {
-    const isChecked = selectedItemIds.has(item.firebaseKey);
-    const statusClass = item.status === 'OPEN' ? 'badge-open' : (item.status === 'IN PROGRESS' ? 'badge-progress' : (item.status === 'CLOSED' ? 'badge-closed' : 'badge-void'));
-    const priorityClass = item.priority === 'H' ? 'badge-critical' : (item.priority === 'M' ? 'badge-medium' : 'badge-low');
-    const priorityLabel = item.priority === 'H' ? 'HIGH' : (item.priority === 'M' ? 'MEDIUM' : 'LOW');
-    const inspThumb = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb">📷</div>`;
-    const closeThumb = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="photo-thumb" onclick="window.open(this.src)">` : `<div class="photo-thumb">🔒</div>`;
-    const openedDate = formatDate(item.createdAt);
-    const closedDate = item.closedAt ? formatDate(item.closedAt) : '—';
-    
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-      <div class="item-row">
-        <div class="item-check">
-          <input type="checkbox" data-key="${item.firebaseKey}" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${item.firebaseKey}', this.checked)">
-        </div>
-        <div class="item-details">
-          <div class="item-desc">${escapeHtml(item.desc)}</div>
-          <div class="item-meta">
-            <span class="badge badge-gray">📍 ${escapeHtml(item.location)}</span>
-            <span class="badge ${priorityClass}">⚠️ ${priorityLabel}</span>
-            <span class="badge ${statusClass}">${item.status}</span>
-            <span class="date-info">📅 Opened: ${openedDate} | Closed: ${closedDate}</span>
-          </div>
-          ${item.remarks ? `<div class="item-note">📝 ${escapeHtml(item.remarks)}</div>` : ''}
-        </div>
-        <div class="status-pri-select">
-          <select class="small-select" data-key="${item.firebaseKey}" onchange="updatePriority(this)">
-            <option value="H" ${item.priority==='H'?'selected':''}>🔴 High</option>
-            <option value="M" ${item.priority==='M'?'selected':''}>🟡 Medium</option>
-            <option value="L" ${item.priority==='L'?'selected':''}>🟢 Low</option>
-          </select>
-          <select class="small-select" data-key="${item.firebaseKey}" onchange="updateStatus(this)">
-            <option value="OPEN" ${item.status==='OPEN'?'selected':''}>OPEN</option>
-            <option value="IN PROGRESS" ${item.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option>
-            <option value="FOR VERIFICATION" ${item.status==='FOR VERIFICATION'?'selected':''}>FOR VERIFICATION</option>
-            <option value="CLOSED" ${item.status==='CLOSED'?'selected':''}>CLOSED</option>
-            <option value="VOIDED" ${item.status==='VOIDED'?'selected':''}>VOIDED</option>
-          </select>
-        </div>
-      </div>
-      <div class="photo-strip">
-        <div>📸 Insp:</div> ${inspThumb}
-        <div>🔒 Close-out:</div> ${closeThumb}
-        <button class="upload-btn-small" onclick="uploadCloseout('${item.firebaseKey}')">Upload Close-out</button>
-        <button class="upload-btn-small" onclick="editRemarks('${item.firebaseKey}')">Remarks</button>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-  updateSelectAllButtonUI();
-}
-
-function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-
-function toggleSelect(key, checked) {
-  if (checked) selectedItemIds.add(key);
-  else selectedItemIds.delete(key);
-  updateSelectAllButtonUI();
-}
-function toggleSelectAll() {
-  let filtered = punchItems;
-  if (currentFilter !== 'all') filtered = punchItems.filter(i => i.status === currentFilter);
-  const allSelected = filtered.length > 0 && filtered.every(i => selectedItemIds.has(i.firebaseKey));
-  if (allSelected) {
-    filtered.forEach(i => selectedItemIds.delete(i.firebaseKey));
-  } else {
-    filtered.forEach(i => selectedItemIds.add(i.firebaseKey));
-  }
-  renderAll();
-}
-function updateSelectAllButtonUI() {
-  const btn = document.querySelector('.select-btn:first-child');
-  if (!btn) return;
-  let filtered = punchItems;
-  if (currentFilter !== 'all') filtered = punchItems.filter(i => i.status === currentFilter);
-  const allSelected = filtered.length > 0 && filtered.every(i => selectedItemIds.has(i.firebaseKey));
-  btn.innerText = allSelected ? '☑ Deselect All' : '☐ Select All';
-}
-async function deleteSelected() {
-  const toDelete = Array.from(selectedItemIds);
-  if (toDelete.length === 0) { alert("No items selected."); return; }
-  if (confirm(`Delete ${toDelete.length} selected item(s) permanently?`)) {
-    await deleteMultipleItems(toDelete);
-    selectedItemIds.clear();
-  }
-}
-
-async function updatePriority(selectEl) {
-  const key = selectEl.dataset.key;
-  await updateItem(key, { priority: selectEl.value });
-}
-async function updateStatus(selectEl) {
-  const key = selectEl.dataset.key;
-  const newStatus = selectEl.value;
-  const item = punchItems.find(i => i.firebaseKey === key);
-  if (!item) return;
-  if (newStatus === 'CLOSED' && (!item.closeoutPhoto || item.closeoutPhoto === '')) {
-    alert("❌ Close-out photo required to mark CLOSED.");
-    renderAll();
-    return;
-  }
-  let updates = { status: newStatus };
-  if (newStatus === 'CLOSED' && item.status !== 'CLOSED') {
-    const remark = prompt("Closing remarks (optional):", item.remarks || "");
-    if (remark !== null) updates.remarks = remark;
-    updates.closedAt = nowTimestamp();
-  }
-  await updateItem(key, updates);
-}
-async function uploadCloseout(key) {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.onchange = async (e) => {
-    if (e.target.files[0]) {
-      const base64 = await fileToBase64(e.target.files[0]);
-      await updateItem(key, { closeoutPhoto: base64 });
-    }
-  };
-  input.click();
-}
-async function editRemarks(key) {
-  const item = punchItems.find(i => i.firebaseKey === key);
-  if (item) {
-    const newRem = prompt("Edit remarks:", item.remarks || "");
-    if (newRem !== null) await updateItem(key, { remarks: newRem });
-  }
-}
+// CRUD operations (aware of offline mode)
 async function addItem() {
   const desc = document.getElementById('f-desc').value.trim();
   const loc = document.getElementById('f-loc').value.trim();
   const pri = document.getElementById('f-pri').value;
-  const initStatus = document.getElementById('f-status').value;
-  const remarks = document.getElementById('f-notes').value.trim();
-  const photo = document.getElementById('f-photo-in').files[0];
-  if (!desc || !loc || !photo) { alert("Description, location, and inspection photo required."); return; }
-  const inspBase64 = await fileToBase64(photo);
-  const now = nowTimestamp();
-  await saveItem({
-    desc, location: loc, priority: pri, status: initStatus, remarks,
-    inspectionPhoto: inspBase64, closeoutPhoto: "",
-    createdAt: now, closedAt: null
-  });
-  closeAdd();
-  document.getElementById('f-desc').value = '';
-  document.getElementById('f-loc').value = '';
-  document.getElementById('f-notes').value = '';
-  document.getElementById('f-photo-in').value = '';
-  document.getElementById('photo-in-preview').innerHTML = '';
-  showToast('✓ Punch item added successfully');
+  const stat = document.getElementById('f-status').value;
+  const notes = document.getElementById('f-notes').value.trim();
+  const file = document.getElementById('f-photo-in').files[0];
+  if (!desc || !loc || !file) { alert("Description, location, and inspection photo required."); return; }
+  const btn = document.getElementById('add-btn');
+  btn.disabled = true; btn.innerText = 'Processing…';
+  const prog = document.getElementById('upload-progress-insp');
+  const pctSpan = document.getElementById('upload-pct-insp');
+  prog.style.display = 'block';
+  try {
+    let inspectionPhoto = '', inspectionPhotoPath = '';
+    if (offlineMode) {
+      inspectionPhoto = await compressImageToBase64(file);
+    } else {
+      const tempKey = Date.now().toString();
+      const path = `${tempKey}/inspection_${Date.now()}.jpg`;
+      const { publicUrl, path: savedPath } = await uploadPhotoToSupabase(file, path, p => { pctSpan.innerText = p; });
+      inspectionPhoto = publicUrl;
+      inspectionPhotoPath = savedPath;
+    }
+    prog.style.display = 'none';
+    btn.innerText = 'Saving…';
+    const newItem = {
+      desc, location: loc, priority: pri, status: stat, remarks: notes,
+      inspectionPhoto, inspectionPhotoPath,
+      closeoutPhoto: '', closeoutPhotoPath: '',
+      createdAt: Date.now(), closedAt: null
+    };
+    if (offlineMode) {
+      await addOfflineItem(newItem);
+      punchItems = await loadOfflineData();
+    } else {
+      await db.ref('punchlist').push().set(newItem);
+    }
+    closeAdd();
+    document.getElementById('f-desc').value = ''; document.getElementById('f-loc').value = ''; document.getElementById('f-notes').value = ''; document.getElementById('f-photo-in').value = ''; document.getElementById('photo-in-preview').innerHTML = '';
+    showToast('✓ Item added');
+    if (offlineMode) renderAll();
+  } catch(err) { showToast('❌ Failed'); console.error(err); }
+  finally { btn.disabled = false; btn.innerText = 'Create Item'; prog.style.display = 'none'; }
 }
 
-// ---------- PDF Generation with adjusted column widths and text wrap ----------
-const LOGO_URL = "https://raw.githubusercontent.com/engrjai-max/engrjai-max.github.io/main/logo.png";
+async function updatePriority(el) {
+  const key = el.dataset.key;
+  const newPri = el.value;
+  if (offlineMode) {
+    await updateOfflineItem(key, { priority: newPri });
+    punchItems = await loadOfflineData();
+    renderAll();
+  } else {
+    await db.ref('punchlist').child(key).update({ priority: newPri });
+  }
+}
+async function updateStatus(el) {
+  const key = el.dataset.key;
+  const newStatus = el.value;
+  let item = offlineMode ? (await loadOfflineData()).find(i => i.firebaseKey === key) : punchItems.find(i => i.firebaseKey === key);
+  if (!item) return;
+  if (newStatus === 'CLOSED' && !item.closeoutPhoto) { alert("❌ Close-out photo required."); renderAll(); return; }
+  const updates = { status: newStatus };
+  if (newStatus === 'CLOSED' && item.status !== 'CLOSED') {
+    const remark = prompt("Closing remarks:", item.remarks || "");
+    if (remark !== null) updates.remarks = remark;
+    updates.closedAt = Date.now();
+  }
+  if (offlineMode) {
+    await updateOfflineItem(key, updates);
+    punchItems = await loadOfflineData();
+    renderAll();
+  } else {
+    await db.ref('punchlist').child(key).update(updates);
+  }
+}
+async function uploadCloseout(key) {
+  const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+  input.onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    showToast('⏳ Uploading close-out…');
+    try {
+      let closeoutPhoto = '', closeoutPhotoPath = '';
+      if (offlineMode) {
+        closeoutPhoto = await compressImageToBase64(file);
+      } else {
+        const path = `${key}/closeout_${Date.now()}.jpg`;
+        const { publicUrl, path: savedPath } = await uploadPhotoToSupabase(file, path);
+        closeoutPhoto = publicUrl; closeoutPhotoPath = savedPath;
+      }
+      const updates = { closeoutPhoto, closeoutPhotoPath };
+      if (offlineMode) {
+        await updateOfflineItem(key, updates);
+        punchItems = await loadOfflineData();
+        renderAll();
+      } else {
+        await db.ref('punchlist').child(key).update(updates);
+      }
+      showToast('✅ Close-out photo saved');
+    } catch(err) { showToast('❌ Upload failed'); console.error(err); }
+  };
+  input.click();
+}
+async function editRemarks(key) {
+  const item = offlineMode ? (await loadOfflineData()).find(i => i.firebaseKey === key) : punchItems.find(i => i.firebaseKey === key);
+  if (!item) return;
+  const rem = prompt("Edit remarks:", item.remarks || "");
+  if (rem !== null) {
+    if (offlineMode) {
+      await updateOfflineItem(key, { remarks: rem });
+      punchItems = await loadOfflineData();
+      renderAll();
+    } else {
+      await db.ref('punchlist').child(key).update({ remarks: rem });
+    }
+  }
+}
+async function deleteSelected() {
+  const keys = Array.from(selectedItemIds);
+  if (!keys.length) { alert("No items selected."); return; }
+  if (!confirm(`Delete ${keys.length} item(s) permanently?`)) return;
+  if (offlineMode) {
+    await deleteOfflineItems(keys);
+    punchItems = await loadOfflineData();
+    selectedItemIds.clear();
+    renderAll();
+  } else {
+    for (const key of keys) {
+      const item = punchItems.find(i => i.firebaseKey === key);
+      if (item) {
+        if (item.inspectionPhotoPath) await deletePhotoFromSupabase(item.inspectionPhotoPath);
+        if (item.closeoutPhotoPath) await deletePhotoFromSupabase(item.closeoutPhotoPath);
+      }
+    }
+    const updates = {}; keys.forEach(k => updates[k] = null);
+    await db.ref('punchlist').update(updates);
+    selectedItemIds.clear();
+  }
+}
+function toggleSelect(key, checked) { checked ? selectedItemIds.add(key) : selectedItemIds.delete(key); updateSelectAllUI(); }
+function toggleSelectAll() {
+  let filtered = currentFilter === 'all' ? punchItems : punchItems.filter(i => i.status === currentFilter);
+  const allSel = filtered.length > 0 && filtered.every(i => selectedItemIds.has(i.firebaseKey));
+  filtered.forEach(i => allSel ? selectedItemIds.delete(i.firebaseKey) : selectedItemIds.add(i.firebaseKey));
+  renderAll();
+}
+function updateSelectAllUI() {
+  const btn = document.querySelector('.select-btn:first-child'); if (!btn) return;
+  let filtered = currentFilter === 'all' ? punchItems : punchItems.filter(i => i.status === currentFilter);
+  btn.innerText = (filtered.length > 0 && filtered.every(i => selectedItemIds.has(i.firebaseKey))) ? '☑ Deselect All' : '☐ Select All';
+}
 
+// PDF generation (unchanged logic, uses punchItems)
+const LOGO_URL = "https://raw.githubusercontent.com/engrjai-max/engrjai-max.github.io/main/logo.png";
 function generatePreviewForItems(itemsToExport) {
   const inspDate = document.getElementById('exp-date').value;
-  if (!inspDate) { alert("Please select Inspection Date."); return null; }
-  if (!itemsToExport.length) { alert("No items to export."); return null; }
-  
+  if (!inspDate) { alert("Select Inspection Date"); return null; }
+  if (!itemsToExport.length) return null;
   const rowsPerPage = 14;
-  const pages = [];
-  for (let i = 0; i < itemsToExport.length; i += rowsPerPage) {
-    pages.push(itemsToExport.slice(i, i + rowsPerPage));
-  }
-  
-  let allPagesHtml = '';
-  const projectName = escapeHtml(document.getElementById('exp-proj').value);
-  const projectLoc = escapeHtml(document.getElementById('exp-loc').value);
-  
-  pages.forEach((pageItems, pageIdx) => {
-    let rowsHtml = '';
-    let startNum = pageIdx * rowsPerPage + 1;
-    pageItems.forEach((item, idx) => {
-      const rowNum = startNum + idx;
+  const projName = escHtml(document.getElementById('exp-proj').value);
+  const projLoc = escHtml(document.getElementById('exp-loc').value);
+  let allPages = '';
+  for (let p=0; p<itemsToExport.length; p+=rowsPerPage) {
+    const page = itemsToExport.slice(p, p+rowsPerPage);
+    let rows = '';
+    page.forEach((item, idx) => {
+      const n = p+idx+1;
       const inspImg = item.inspectionPhoto ? `<img src="${item.inspectionPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
       const closeImg = item.closeoutPhoto ? `<img src="${item.closeoutPhoto}" class="pdf-img" crossorigin="anonymous">` : '<span>No Image</span>';
-      const opened = formatDate(item.createdAt);
-      const closed = item.closedAt ? formatDate(item.closedAt) : '—';
-      rowsHtml += `<tr style="break-inside:avoid; page-break-inside:avoid;">
-        <td style="text-align:center; width:3%;">${rowNum}</td>
-        <td style="width:14%;">${escapeHtml(item.location)}</td>
-        <td style="width:20%;">${escapeHtml(item.desc)}</td>
-        <td style="text-align:center; width:4%; white-space:nowrap;">${item.priority}</td>
-        <td style="text-align:center; width:17%;">${inspImg}</td>
-        <td style="text-align:center; width:17%;">${closeImg}</td>
-        <td style="text-align:center; width:6%;">${item.status}</td>
-        <td style="width:6%;">${opened}<br>${closed}</td>
-        <td style="width:13%;">${escapeHtml(item.remarks||'')}</td>
-      </tr>`;
+      rows += `<tr><td style="text-align:center;width:3%">${n}</td><td style="width:14%">${escHtml(item.location)}</td><td style="width:20%">${escHtml(item.desc)}</td><td style="text-align:center;width:4%">${item.priority}</td><td style="text-align:center;width:17%">${inspImg}</td><td style="text-align:center;width:17%">${closeImg}</td><td style="text-align:center;width:6%">${item.status}</td><td style="width:6%">${formatDate(item.createdAt)}<br>${item.closedAt?formatDate(item.closedAt):'—'}</td><td style="width:13%">${escHtml(item.remarks||'')}</td></tr>`;
     });
-    
-    const legendHtml = pageIdx === 0 ? `
-      <div class="pdf-legend-container">
-        <strong>Status Legend:</strong>
-        <table class="pdf-legend-table">
-          <tr><td style="background:#22c55e;">OPEN</td><td style="background:#eab308;">IN PROGRESS</td>
-          <td style="background:#3b82f6;color:#fff;">FOR VERIFICATION</td><td style="background:#d946ef;color:#fff;">CLOSED</td>
-          <td style="background:#9ca3af;">VOIDED</td>
-        </tr>
-      </table>
-      </div>
-    ` : '';
-    
-    allPagesHtml += `
-      <div class="pdf-page">
-        <div class="pdf-header-logo"><img src="${LOGO_URL}" class="pdf-logo-img" onerror="this.style.display='none'"></div>
-        <div class="pdf-title">QA/QC PUNCHLIST TRACKING FORM</div>
-        <div class="pdf-info-grid">
-          <div><strong>Project:</strong> ${projectName}<br><strong>Location:</strong> ${projectLoc}</div>
-          <div><strong>Inspection Date:</strong> ${inspDate}</div>
-        </div>
-        ${legendHtml}
-        <table class="pdf-table" style="width:100%; table-layout:fixed;">
-          <thead>
-            <tr><th style="width:3%">#</th><th style="width:14%">LOCATION</th><th style="width:20%">DESCRIPTION</th>
-            <th style="width:4%">PRI</th><th style="width:17%">INSPECTION PHOTO</th><th style="width:17%">CLOSE-OUT PHOTO</th>
-            <th style="width:6%">STATUS</th><th style="width:6%">DATES</th><th style="width:13%">REMARKS</th></tr>
-          </thead>
-          <tbody>${rowsHtml}</tbody>
-        </table>
-        <div class="pdf-footer"><div>** For Internal Use Only **</div><div>TSDCI-TGRDC-QAQC-FORM</div></div>
-      </div>
-    `;
-  });
-  return allPagesHtml;
+    const legend = p===0 ? `<div class="pdf-legend-container"><strong>Status Legend:</strong><table class="pdf-legend-table"><tr><td style="background:#22c55e">OPEN</td><td style="background:#eab308">IN PROGRESS</td><td style="background:#3b82f6;color:#fff">FOR VERIFICATION</td><td style="background:#d946ef;color:#fff">CLOSED</td><td style="background:#9ca3af">VOIDED</td></tr></table></div>` : '';
+    allPages += `<div class="pdf-page"><div class="pdf-header-logo"><img src="${LOGO_URL}" class="pdf-logo-img" onerror="this.style.display='none'"></div><div class="pdf-title">QA/QC PUNCHLIST TRACKING FORM</div><div class="pdf-info-grid"><div><strong>Project:</strong> ${projName}<br><strong>Location:</strong> ${projLoc}</div><div><strong>Inspection Date:</strong> ${inspDate}</div></div>${legend}<table class="pdf-table"><thead><tr><th>#</th><th>LOCATION</th><th>DESCRIPTION</th><th>PRI</th><th>INSPECTION PHOTO</th><th>CLOSE-OUT PHOTO</th><th>STATUS</th><th>DATES</th><th>REMARKS</th></tr></thead><tbody>${rows}</tbody></table><div class="pdf-footer"><div>** For Internal Use Only **</div><div>TSDCI-TGRDC-QAQC-FORM</div></div></div>`;
+  }
+  return allPages;
 }
-
-async function generatePreview() {
-  const html = generatePreviewForItems(punchItems);
-  if (!html) return;
-  closeExport();
-  document.getElementById('pdf-content').innerHTML = html;
-  document.getElementById('preview-modal').classList.add('open');
-}
-
+async function generatePreview() { const html = generatePreviewForItems(punchItems); if (!html) return; closeExport(); document.getElementById('pdf-content').innerHTML = html; document.getElementById('preview-modal').classList.add('open'); }
 function downloadPDF() {
-  const element = document.getElementById('pdf-content');
-  if (!element.innerHTML.trim()) { alert("Generate preview first."); return; }
-  const btn = document.querySelector('#preview-modal .generate');
-  btn.innerText = "⏳ Generating...";
-  btn.disabled = true;
-  const opt = {
-    margin: [5, 8, 5, 8],
-    filename: `Punchlist_${Date.now()}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-    pagebreak: { mode: ['css', 'legacy'] }
-  };
-  html2pdf().set(opt).from(element).save()
-    .then(() => { btn.innerText = "Download PDF"; btn.disabled = false; closePreview(); })
-    .catch(e => { alert("PDF error: " + e); btn.innerText = "Download PDF"; btn.disabled = false; });
+  const elem = document.getElementById('pdf-content');
+  if (!elem.innerHTML.trim()) { alert("Generate preview first."); return; }
+  const btn = document.querySelector('#preview-modal .export-btn');
+  btn.innerText = '⏳ Generating…'; btn.disabled = true;
+  html2pdf().set({ margin:[5,8,5,8], filename:`Punchlist_${Date.now()}.pdf`, image:{ type:'jpeg', quality:0.95 }, html2canvas:{ scale:2, useCORS:true, logging:false }, jsPDF:{ unit:'mm', format:'a4', orientation:'landscape' }, pagebreak:{ mode:['css','legacy'] } }).from(elem).save().then(()=>{ btn.innerText='⬇ Download PDF'; btn.disabled=false; closePreview(); }).catch(e=>{ alert("PDF error"); btn.innerText='⬇ Download PDF'; btn.disabled=false; });
 }
-
 function openAdd() { document.getElementById('add-backdrop').classList.add('open'); document.getElementById('add-sheet').classList.add('open'); }
 function closeAdd() { document.getElementById('add-backdrop').classList.remove('open'); document.getElementById('add-sheet').classList.remove('open'); }
 function openExport() { document.getElementById('exp-backdrop').classList.add('open'); document.getElementById('exp-sheet').classList.add('open'); document.getElementById('exp-date').valueAsDate = new Date(); }
 function closeExport() { document.getElementById('exp-backdrop').classList.remove('open'); document.getElementById('exp-sheet').classList.remove('open'); }
 function closePreview() { document.getElementById('preview-modal').classList.remove('open'); }
+function showToast(msg) { const t = document.getElementById('toastMsg'); t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2500); }
 
-function initFilters() {
-  document.querySelectorAll('.filter-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      currentFilter = chip.dataset.filter;
-      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      selectedItemIds.clear();
-      renderAll();
-    });
-  });
-}
-
-document.getElementById('f-photo-in')?.addEventListener('change', (e) => {
+// Preview for inspection photo in form
+document.getElementById('f-photo-in').addEventListener('change', e => {
   const preview = document.getElementById('photo-in-preview');
-  if (e.target.files && e.target.files[0]) {
+  if(e.target.files && e.target.files[0]){
     const reader = new FileReader();
-    reader.onload = ev => preview.innerHTML = `<img src="${ev.target.result}" style="max-width:80px; border-radius:6px;">`;
+    reader.onload = ev => preview.innerHTML = `<img src="${ev.target.result}" style="max-width:80px;border-radius:6px;margin-top:4px">`;
     reader.readAsDataURL(e.target.files[0]);
   } else preview.innerHTML = '';
 });
-function logout() {
-  auth.signOut();
-}
-window.logout = logout;
-window.checkPassword = checkPassword;
-window.addItem = addItem;
-window.openAdd = openAdd; window.closeAdd = closeAdd;
+
+// Filters
+document.querySelectorAll('.filter-chip').forEach(chip => chip.addEventListener('click', () => {
+  currentFilter = chip.dataset.filter;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  selectedItemIds.clear();
+  renderAll();
+}));
+
+// Expose globals to inline event handlers
+window.checkPassword = checkPassword; window.logout = logout;
+window.addItem = addItem; window.openAdd = openAdd; window.closeAdd = closeAdd;
 window.openExport = openExport; window.closeExport = closeExport;
 window.generatePreview = generatePreview; window.downloadPDF = downloadPDF; window.closePreview = closePreview;
-window.updatePriority = updatePriority;
-window.updateStatus = updateStatus;
-window.uploadCloseout = uploadCloseout;
-window.editRemarks = editRemarks;
-window.toggleSelect = toggleSelect;
-window.toggleSelectAll = toggleSelectAll;
-window.deleteSelected = deleteSelected;
-initFilters();
+window.updatePriority = updatePriority; window.updateStatus = updateStatus;
+window.uploadCloseout = uploadCloseout; window.editRemarks = editRemarks;
+window.toggleSelect = toggleSelect; window.toggleSelectAll = toggleSelectAll; window.deleteSelected = deleteSelected;
 </script>
 </body>
 </html>
