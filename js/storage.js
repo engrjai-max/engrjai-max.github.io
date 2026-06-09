@@ -2,7 +2,7 @@
 // storage.js — Image compression, Supabase Storage, offline DB
 // ============================================================
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/module/index.js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET } from './config.js';
 
 export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
