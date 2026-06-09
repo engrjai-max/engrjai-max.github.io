@@ -3,21 +3,14 @@
 // ============================================================
 
 import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineItems } from './storage.js';
-
-// ── App state ─────────────────────────────────────────────
-export let currentMode     = 'offline'; // 'online' | 'offline'
-export let realtimeChannel = null;
-export let punchItems      = [];
-export let selectedSet     = new Set();
-export let currentFilter   = 'all';
-
-export function setCurrentMode(mode)       { currentMode = mode; }
-export function setPunchItems(items)       { punchItems  = items; }
-export function setCurrentFilter(filter)   { currentFilter = filter; }
+import { state } from './state.js';
 
 // ── Sync indicator ────────────────────────────────────────
-const syncDot = document.getElementById('sync-dot');
-export function setSyncStatus(status) { syncDot.className = `sync-dot ${status}`; }
+function getSyncDot() { return document.getElementById('sync-dot'); }
+export function setSyncStatus(status) {
+  const dot = getSyncDot();
+  if (dot) dot.className = `sync-dot ${status}`;
+}
 
 // ── Online CRUD ───────────────────────────────────────────
 export async function fetchOnlineItems() {
@@ -136,9 +129,12 @@ export async function deleteOfflineItems(ids) {
 
 // ── Realtime subscription ─────────────────────────────────
 export function subscribeToRealtime(onUpdate) {
-  if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
-  realtimeChannel = supabaseClient
+  if (state.realtimeChannel) supabaseClient.removeChannel(state.realtimeChannel);
+  state.realtimeChannel = supabaseClient
     .channel('punch_items_changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'punch_items' }, () => onUpdate())
     .subscribe();
 }
+
+// re-export helpers consumed by other modules
+export { getOfflineItems, saveOfflineItems };

@@ -2,12 +2,9 @@
 // render.js — DOM rendering: list, stats, dynamic events
 // ============================================================
 
-import {
-  punchItems, selectedSet, currentFilter, currentMode,
-  setSyncStatus, updateOnlineItem, updateOfflineItem,
-  uploadImage,
-} from './database.js';
-import { getOfflineItems, setPunchItems } from './database.js';
+import { state } from './state.js';
+import { setSyncStatus, updateOnlineItem, updateOfflineItem, getOfflineItems } from './database.js';
+import { uploadImage } from './storage.js';
 import { loadOnlineDataAndRender } from './auth.js';
 import { showToast } from './ui.js';
 
@@ -23,26 +20,22 @@ export function escapeHtml(str) {
 }
 
 export async function refreshData() {
-  if (currentMode === 'online') {
+  if (state.currentMode === 'online') {
     await loadOnlineDataAndRender();
   } else {
-    const items = await getOfflineItems();
-    setPunchItems(items);
+    state.punchItems = await getOfflineItems();
     renderAll();
   }
 }
 
 // ── Main render ───────────────────────────────────────────
 export function renderAll() {
-  const openCount = punchItems.filter(i => i.status !== 'CLOSED' && i.status !== 'VOIDED').length;
-  const highCount = punchItems.filter(i => i.priority === 'H').length;
-  const progCount = punchItems.filter(i => i.status === 'IN PROGRESS').length;
-  const doneCount = punchItems.filter(i => i.status === 'CLOSED').length;
+  const { punchItems, currentFilter, selectedSet } = state;
 
-  document.getElementById('cnt-open').innerText = openCount;
-  document.getElementById('cnt-high').innerText = highCount;
-  document.getElementById('cnt-prog').innerText = progCount;
-  document.getElementById('cnt-done').innerText = doneCount;
+  document.getElementById('cnt-open').innerText = punchItems.filter(i => i.status !== 'CLOSED' && i.status !== 'VOIDED').length;
+  document.getElementById('cnt-high').innerText = punchItems.filter(i => i.priority === 'H').length;
+  document.getElementById('cnt-prog').innerText = punchItems.filter(i => i.status === 'IN PROGRESS').length;
+  document.getElementById('cnt-done').innerText = punchItems.filter(i => i.status === 'CLOSED').length;
 
   const filtered = currentFilter === 'all'
     ? punchItems
@@ -121,32 +114,28 @@ export function renderAll() {
 
 // ── Dynamic event attachment ──────────────────────────────
 function attachDynamicEvents() {
-  // Checkbox selection
   document.querySelectorAll('.item-check input').forEach(cb => {
     cb.addEventListener('change', () => {
-      cb.checked ? selectedSet.add(cb.dataset.id) : selectedSet.delete(cb.dataset.id);
+      cb.checked ? state.selectedSet.add(cb.dataset.id) : state.selectedSet.delete(cb.dataset.id);
       updateSelectAllUI();
     });
   });
 
-  // Priority change
   document.querySelectorAll('.small-select[data-field="priority"]').forEach(sel => {
     sel.addEventListener('change', async () => {
-      const { id } = sel.dataset;
-      if (currentMode === 'online') await updateOnlineItem(id, { priority: sel.value });
-      else                          await updateOfflineItem(id, { priority: sel.value });
+      if (state.currentMode === 'online') await updateOnlineItem(sel.dataset.id, { priority: sel.value });
+      else                                await updateOfflineItem(sel.dataset.id, { priority: sel.value });
       refreshData();
     });
   });
 
-  // Status change
   document.querySelectorAll('.small-select[data-field="status"]').forEach(sel => {
     sel.addEventListener('change', async () => {
       const { id } = sel.dataset;
       const newStatus = sel.value;
-      const item = punchItems.find(i => i.id === id);
+      const item = state.punchItems.find(i => i.id === id);
       if (newStatus === 'CLOSED' && !item.closeoutPhoto) {
-        alert('❌ Close-out photo required.');
+        alert('❌ Close-out photo required before closing.');
         refreshData();
         return;
       }
@@ -156,25 +145,24 @@ function attachDynamicEvents() {
         if (remark !== null) updates.remarks = remark;
         updates.closed_at = Date.now();
       }
-      if (currentMode === 'online') await updateOnlineItem(id, updates);
-      else                          await updateOfflineItem(id, updates);
+      if (state.currentMode === 'online') await updateOnlineItem(id, updates);
+      else                                await updateOfflineItem(id, updates);
       refreshData();
     });
   });
 
-  // Close-out photo upload
   document.querySelectorAll('[data-action="closeout"]').forEach(btn => {
     btn.addEventListener('click', () => {
       const { id } = btn.dataset;
       const input = document.createElement('input');
-      input.type   = 'file';
+      input.type = 'file';
       input.accept = 'image/*';
       input.onchange = async (ev) => {
         const file = ev.target.files[0];
         if (!file) return;
-        showToast('Uploading closeout…');
+        showToast('Uploading close-out…');
         try {
-          if (currentMode === 'online') {
+          if (state.currentMode === 'online') {
             setSyncStatus('syncing');
             const { url, path } = await uploadImage(file, `closeout/${id}`);
             await updateOnlineItem(id, { closeout_photo_url: url, closeout_photo_path: path });
@@ -189,7 +177,7 @@ function attachDynamicEvents() {
           showToast('✅ Close-out saved');
           refreshData();
         } catch (e) {
-          showToast('Upload failed');
+          showToast('❌ Upload failed: ' + e.message);
           setSyncStatus('error');
         }
       };
@@ -197,25 +185,24 @@ function attachDynamicEvents() {
     });
   });
 
-  // Edit remarks
   document.querySelectorAll('[data-action="remarks"]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const { id } = btn.dataset;
-      const item   = punchItems.find(i => i.id === id);
+      const item   = state.punchItems.find(i => i.id === id);
       const newRem = prompt('Edit remarks', item.remarks || '');
       if (newRem !== null) {
-        if (currentMode === 'online') await updateOnlineItem(id, { remarks: newRem });
-        else                          await updateOfflineItem(id, { remarks: newRem });
+        if (state.currentMode === 'online') await updateOnlineItem(id, { remarks: newRem });
+        else                                await updateOfflineItem(id, { remarks: newRem });
         refreshData();
       }
     });
   });
 }
 
-// ── Select-all button UI ──────────────────────────────────
 export function updateSelectAllUI() {
   const btn = document.getElementById('selectAllBtn');
   if (!btn) return;
+  const { punchItems, currentFilter, selectedSet } = state;
   const filtered = currentFilter === 'all' ? punchItems : punchItems.filter(i => i.status === currentFilter);
   const allSelected = filtered.length && filtered.every(i => selectedSet.has(i.id));
   btn.innerText = allSelected ? '☑ Deselect All' : '☐ Select All';

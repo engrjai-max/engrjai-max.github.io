@@ -2,22 +2,19 @@
 // main.js — App entry point: event listeners & filter chips
 // ============================================================
 
+import { state } from './state.js';
 import { loginOnline, logout, startOfflineMode } from './auth.js';
-import { selectedSet, currentFilter, setCurrentFilter, punchItems } from './database.js';
-import { renderAll } from './render.js';
 import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, showToast, selectAllToggle, deleteSelected } from './ui.js';
 import { createNewItem } from './items.js';
 import { previewPDF, downloadPDF } from './pdf.js';
+import { refreshData } from './render.js';
 
 // ── Auth ──────────────────────────────────────────────────
 document.getElementById('online-login-btn').onclick = async () => {
   const pwd = document.getElementById('login-password').value;
-  try {
-    await loginOnline(pwd);
-  } catch (e) {
-    document.getElementById('gate-err').innerText = e.message;
-  }
+  await loginOnline(pwd); // errors shown in gate-err by loginOnline
 };
+
 document.getElementById('offline-mode-btn').onclick = () => startOfflineMode();
 document.getElementById('logoutBtn').onclick         = () => logout();
 
@@ -25,7 +22,6 @@ document.getElementById('logoutBtn').onclick         = () => logout();
 document.getElementById('addFab').onclick     = openAdd;
 document.getElementById('addItemBtn').onclick = createNewItem;
 
-// Photo preview in add sheet
 document.getElementById('f-photo-in').addEventListener('change', e => {
   const preview = document.getElementById('photo-in-preview');
   if (e.target.files[0]) {
@@ -45,7 +41,7 @@ document.getElementById('downloadPdfBtn').onclick  = downloadPDF;
 document.getElementById('closePreviewBtn').onclick = closePreviewModal;
 
 // ── Bulk actions ──────────────────────────────────────────
-document.getElementById('selectAllBtn').onclick     = selectAllToggle;
+document.getElementById('selectAllBtn').onclick      = selectAllToggle;
 document.getElementById('deleteSelectedBtn').onclick = deleteSelected;
 
 // ── Sheet backdrop dismiss ────────────────────────────────
@@ -55,11 +51,10 @@ document.getElementById('add-backdrop').addEventListener('click', closeAdd);
 // ── Filter chips ──────────────────────────────────────────
 document.querySelectorAll('.filter-chip').forEach(chip => {
   chip.addEventListener('click', () => {
-    setCurrentFilter(chip.dataset.filter);
+    state.currentFilter = chip.dataset.filter;
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
-    selectedSet.clear();
-    // refreshData is imported lazily to avoid circular dep
-    import('./render.js').then(m => m.refreshData());
+    state.selectedSet.clear();
+    refreshData();
   });
 });

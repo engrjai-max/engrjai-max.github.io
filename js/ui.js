@@ -2,18 +2,15 @@
 // ui.js — Toast, sheet controls, select-all, delete selected
 // ============================================================
 
-import {
-  currentMode, selectedSet, punchItems,
-  deleteOnlineItems, deleteOfflineItems,
-  getOfflineItems, setPunchItems,
-} from './database.js';
+import { state } from './state.js';
+import { deleteOnlineItems, deleteOfflineItems, getOfflineItems } from './database.js';
 import { loadOnlineDataAndRender } from './auth.js';
 import { renderAll, updateSelectAllUI } from './render.js';
 
 // ── Toast ─────────────────────────────────────────────────
 export function showToast(msg) {
   const t = document.getElementById('toastMsg');
-  t.innerText    = msg;
+  t.innerText     = msg;
   t.style.opacity = '1';
   setTimeout(() => (t.style.opacity = '0'), 2500);
 }
@@ -50,7 +47,7 @@ export function closePreviewModal() {
 
 // ── Select-all toggle ─────────────────────────────────────
 export function selectAllToggle() {
-  const { currentFilter } = await import('./database.js'); // lazy re-import for live value
+  const { punchItems, currentFilter, selectedSet } = state;
   const filtered = currentFilter === 'all'
     ? punchItems
     : punchItems.filter(i => i.status === currentFilter);
@@ -61,19 +58,18 @@ export function selectAllToggle() {
 
 // ── Delete selected ───────────────────────────────────────
 export async function deleteSelected() {
-  const ids = Array.from(selectedSet);
+  const ids = Array.from(state.selectedSet);
   if (!ids.length) { alert('No items selected'); return; }
   if (!confirm(`Delete ${ids.length} item(s)?`)) return;
 
-  if (currentMode === 'online') {
-    await deleteOnlineItems(ids, punchItems);
+  if (state.currentMode === 'online') {
+    await deleteOnlineItems(ids, state.punchItems);
     await loadOnlineDataAndRender();
   } else {
     await deleteOfflineItems(ids);
-    const items = await getOfflineItems();
-    setPunchItems(items);
+    state.punchItems = await getOfflineItems();
     renderAll();
   }
-  selectedSet.clear();
+  state.selectedSet.clear();
   renderAll();
 }

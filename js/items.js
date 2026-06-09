@@ -2,7 +2,8 @@
 // items.js — Create new punch item (form logic)
 // ============================================================
 
-import { currentMode, setSyncStatus, addOnlineItem, addOfflineItem, getOfflineItems, setPunchItems } from './database.js';
+import { state } from './state.js';
+import { setSyncStatus, addOnlineItem, addOfflineItem, getOfflineItems } from './database.js';
 import { loadOnlineDataAndRender } from './auth.js';
 import { renderAll } from './render.js';
 import { closeAdd, showToast } from './ui.js';
@@ -16,7 +17,7 @@ export async function createNewItem() {
   const file   = document.getElementById('f-photo-in').files[0];
 
   if (!desc || !loc || !file) {
-    alert('Description, location and inspection photo required.');
+    alert('Description, location and inspection photo are required.');
     return;
   }
 
@@ -27,7 +28,7 @@ export async function createNewItem() {
   progDiv.style.display = 'block';
 
   try {
-    if (currentMode === 'online') {
+    if (state.currentMode === 'online') {
       setSyncStatus('syncing');
       await addOnlineItem({ desc, location: loc, priority: pri, status, remarks: notes }, file);
       await loadOnlineDataAndRender();
@@ -38,14 +39,13 @@ export async function createNewItem() {
         rd.readAsDataURL(file);
       });
       await addOfflineItem({ desc, location: loc, priority: pri, status, remarks: notes }, base64);
-      const items = await getOfflineItems();
-      setPunchItems(items);
+      state.punchItems = await getOfflineItems();
       renderAll();
     }
     closeAdd();
     showToast('✓ Item created');
   } catch (e) {
-    alert('Error: ' + e.message);
+    alert('❌ Error: ' + e.message);
     setSyncStatus('error');
   } finally {
     btn.disabled  = false;

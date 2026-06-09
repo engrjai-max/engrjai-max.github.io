@@ -4,65 +4,71 @@
 
 import { supabaseClient } from './storage.js';
 import { SHARED_EMAIL } from './config.js';
-import {
-  currentMode, realtimeChannel,
-  setCurrentMode, setPunchItems, selectedSet,
-  setSyncStatus, fetchOnlineItems, getOfflineItems,
-  subscribeToRealtime,
-} from './database.js';
+import { state } from './state.js';
+import { setSyncStatus, fetchOnlineItems, subscribeToRealtime, getOfflineItems } from './database.js';
 import { renderAll } from './render.js';
 import { showToast } from './ui.js';
 
 export async function loginOnline(password) {
+  const errEl = document.getElementById('gate-err');
+  errEl.innerText = '';
   setSyncStatus('syncing');
-  const { error } = await supabaseClient.auth.signInWithPassword({
-    email: SHARED_EMAIL,
-    password,
-  });
-  if (error) throw new Error(error.message);
 
-  setCurrentMode('online');
-  await loadOnlineDataAndRender();
-  subscribeToRealtime(() => loadOnlineDataAndRender());
+  try {
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email: SHARED_EMAIL,
+      password,
+    });
+    if (error) throw new Error(error.message);
 
-  document.getElementById('gate').style.display     = 'none';
-  document.getElementById('main-app').style.display = 'block';
-  setSyncStatus('online');
-  showToast('✅ Online mode active');
+    state.currentMode = 'online';
+    await loadOnlineDataAndRender();
+    subscribeToRealtime(() => loadOnlineDataAndRender());
+
+    document.getElementById('gate').style.display     = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    setSyncStatus('online');
+    showToast('✅ Online mode active');
+  } catch (e) {
+    errEl.innerText = '❌ ' + e.message;
+    setSyncStatus('error');
+  }
 }
 
 export async function logout() {
-  if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+  if (state.realtimeChannel) supabaseClient.removeChannel(state.realtimeChannel);
   await supabaseClient.auth.signOut();
 
-  setCurrentMode('offline');
-  setPunchItems([]);
-  selectedSet.clear();
+  state.currentMode = 'offline';
+  state.punchItems  = [];
+  state.selectedSet.clear();
 
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('gate').style.display     = 'flex';
-  setSyncStatus('online');
+  setSyncStatus('offline');
 }
 
 export async function startOfflineMode() {
-  setCurrentMode('offline');
-  const offlineItems = await getOfflineItems();
-  setPunchItems(offlineItems);
-  renderAll();
+  try {
+    state.currentMode = 'offline';
+    state.punchItems  = await getOfflineItems();
+    renderAll();
 
-  document.getElementById('gate').style.display     = 'none';
-  document.getElementById('main-app').style.display = 'block';
-  setSyncStatus('online');
-  showToast('📴 Offline mode - data stays on device');
+    document.getElementById('gate').style.display     = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    setSyncStatus('offline');
+    showToast('📴 Offline mode — data stays on device');
+  } catch (e) {
+    document.getElementById('gate-err').innerText = '❌ ' + e.message;
+  }
 }
 
 export async function loadOnlineDataAndRender() {
   try {
-    const items = await fetchOnlineItems();
-    setPunchItems(items);
+    state.punchItems = await fetchOnlineItems();
     renderAll();
   } catch (e) {
-    showToast('Sync error: ' + e.message);
+    showToast('⚠️ Sync error: ' + e.message);
     setSyncStatus('error');
   }
 }
