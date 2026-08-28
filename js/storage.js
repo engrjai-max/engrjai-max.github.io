@@ -3,7 +3,7 @@
 // ============================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET } from './config.js?v=4';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET } from './config.js?v=5';
 
 export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 

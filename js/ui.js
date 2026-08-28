@@ -2,10 +2,10 @@
 // ui.js — Toast, sheet controls, select-all, delete selected
 // ============================================================
 
-import { state, getLastInspectionDate, todayISO } from './state.js?v=4';
-import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=4';
-import { loadOnlineDataAndRender } from './auth.js?v=4';
-import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=4';
+import { state, getLastInspectionDate, todayISO } from './state.js?v=5';
+import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=5';
+import { loadOnlineDataAndRender } from './auth.js?v=5';
+import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=5';
 
 // Safe DOM helpers — never throw if an element is missing (e.g. stale cached HTML)
 function $(id) { return document.getElementById(id); }

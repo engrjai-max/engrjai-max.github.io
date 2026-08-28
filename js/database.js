@@ -2,8 +2,8 @@
 // database.js — Supabase CRUD, offline CRUD, realtime
 // ============================================================
 
-import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineItems } from './storage.js?v=4';
-import { state } from './state.js?v=4';
+import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineItems } from './storage.js?v=5';
+import { state } from './state.js?v=5';
 
 // ── Sync indicator ────────────────────────────────────────
 export function setSyncStatus(status) {
