@@ -2,11 +2,11 @@
 // items.js — Create new punch item (form logic)
 // ============================================================
 
-import { state } from './state.js';
-import { setSyncStatus, addOnlineItem, addOfflineItem, getOfflineItems } from './database.js';
-import { loadOnlineDataAndRender } from './auth.js';
-import { renderAll } from './render.js';
-import { closeAdd, showToast } from './ui.js';
+import { state } from './state.js?v=2';
+import { setSyncStatus, addOnlineItem, addOfflineItem, getOfflineItems } from './database.js?v=2';
+import { loadOnlineDataAndRender } from './auth.js?v=2';
+import { renderAll } from './render.js?v=2';
+import { closeAdd, showToast } from './ui.js?v=2';
 
 export async function createNewItem() {
   const desc   = document.getElementById('f-desc').value.trim();

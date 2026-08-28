@@ -2,10 +2,10 @@
 // ui.js — Toast, sheet controls, select-all, delete selected
 // ============================================================
 
-import { state } from './state.js';
-import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js';
-import { loadOnlineDataAndRender } from './auth.js';
-import { renderAll, updateSelectAllUI, refreshData } from './render.js';
+import { state } from './state.js?v=2';
+import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=2';
+import { loadOnlineDataAndRender } from './auth.js?v=2';
+import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=2';
 
 // ── Toast ─────────────────────────────────────────────────
 export function showToast(msg) {
@@ -30,24 +30,29 @@ export function closeAdd() {
 
 // ── Edit Sheet ────────────────────────────────────────────
 export function openEditSheet() {
-  const ids = Array.from(state.selectedSet);
-  if (ids.length !== 1) {
-    alert(ids.length === 0 ? 'Select an item to edit.' : 'Select only one item to edit at a time.');
-    return;
-  }
-  const item = state.punchItems.find(i => String(i.id) === String(ids[0]));
-  if (!item) {
-    alert('Could not find the selected item. Try refreshing and selecting again.');
-    return;
-  }
+  try {
+    const ids = Array.from(state.selectedSet);
+    if (ids.length !== 1) {
+      alert(ids.length === 0 ? 'Select an item to edit.' : 'Select only one item to edit at a time.');
+      return;
+    }
+    const item = state.punchItems.find(i => String(i.id) === String(ids[0]));
+    if (!item) {
+      alert('Could not find the selected item. Try refreshing and selecting again.');
+      return;
+    }
 
-  state.editingId = item.id;
-  document.getElementById('e-desc').value  = item.desc || '';
-  document.getElementById('e-loc').value   = item.location || '';
-  document.getElementById('e-notes').value = item.remarks || '';
+    state.editingId = item.id;
+    document.getElementById('e-desc').value  = item.desc || '';
+    document.getElementById('e-loc').value   = item.location || '';
+    document.getElementById('e-notes').value = item.remarks || '';
 
-  document.getElementById('edit-backdrop').classList.add('open');
-  document.getElementById('edit-sheet').classList.add('open');
+    document.getElementById('edit-backdrop').classList.add('open');
+    document.getElementById('edit-sheet').classList.add('open');
+  } catch (e) {
+    console.error('openEditSheet failed:', e);
+    alert('❌ Edit failed to open: ' + e.message);
+  }
 }
 
 export function closeEdit() {
