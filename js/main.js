@@ -4,7 +4,7 @@
 
 import { state } from './state.js';
 import { loginOnline, logout, startOfflineMode } from './auth.js';
-import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, showToast, selectAllToggle, deleteSelected } from './ui.js';
+import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, showToast, selectAllToggle, deleteSelected, openEditSheet, closeEdit, saveEdit } from './ui.js';
 import { createNewItem } from './items.js';
 import { previewPDF, downloadPDF } from './pdf.js';
 import { refreshData } from './render.js';
@@ -42,11 +42,16 @@ document.getElementById('closePreviewBtn').onclick = closePreviewModal;
 
 // ── Bulk actions ──────────────────────────────────────────
 document.getElementById('selectAllBtn').onclick      = selectAllToggle;
+document.getElementById('editSelectedBtn').onclick   = openEditSheet;
 document.getElementById('deleteSelectedBtn').onclick = deleteSelected;
+
+// ── Edit sheet ────────────────────────────────────────────
+document.getElementById('saveEditBtn').onclick = saveEdit;
 
 // ── Sheet backdrop dismiss ────────────────────────────────
 document.getElementById('exp-backdrop').addEventListener('click', closeExport);
 document.getElementById('add-backdrop').addEventListener('click', closeAdd);
+document.getElementById('edit-backdrop').addEventListener('click', closeEdit);
 
 // ── Filter chips ──────────────────────────────────────────
 document.querySelectorAll('.filter-chip').forEach(chip => {

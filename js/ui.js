@@ -3,9 +3,9 @@
 // ============================================================
 
 import { state } from './state.js';
-import { deleteOnlineItems, deleteOfflineItems, getOfflineItems } from './database.js';
+import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js';
 import { loadOnlineDataAndRender } from './auth.js';
-import { renderAll, updateSelectAllUI } from './render.js';
+import { renderAll, updateSelectAllUI, refreshData } from './render.js';
 
 // ── Toast ─────────────────────────────────────────────────
 export function showToast(msg) {
@@ -26,6 +26,69 @@ export function closeAdd() {
   document.getElementById('add-sheet').classList.remove('open');
   document.getElementById('f-photo-in').value = '';
   document.getElementById('photo-in-preview').innerHTML = '';
+}
+
+// ── Edit Sheet ────────────────────────────────────────────
+export function openEditSheet() {
+  const ids = Array.from(state.selectedSet);
+  if (ids.length !== 1) {
+    alert(ids.length === 0 ? 'Select an item to edit.' : 'Select only one item to edit at a time.');
+    return;
+  }
+  const item = state.punchItems.find(i => String(i.id) === String(ids[0]));
+  if (!item) {
+    alert('Could not find the selected item. Try refreshing and selecting again.');
+    return;
+  }
+
+  state.editingId = item.id;
+  document.getElementById('e-desc').value  = item.desc || '';
+  document.getElementById('e-loc').value   = item.location || '';
+  document.getElementById('e-notes').value = item.remarks || '';
+
+  document.getElementById('edit-backdrop').classList.add('open');
+  document.getElementById('edit-sheet').classList.add('open');
+}
+
+export function closeEdit() {
+  state.editingId = null;
+  document.getElementById('edit-backdrop').classList.remove('open');
+  document.getElementById('edit-sheet').classList.remove('open');
+}
+
+export async function saveEdit() {
+  const id   = state.editingId;
+  if (!id) return;
+
+  const desc = document.getElementById('e-desc').value.trim();
+  const loc  = document.getElementById('e-loc').value.trim();
+  const notes = document.getElementById('e-notes').value.trim();
+
+  if (!desc || !loc) {
+    alert('Description and location are required.');
+    return;
+  }
+
+  const btn = document.getElementById('saveEditBtn');
+  btn.disabled  = true;
+  btn.innerText = 'Saving…';
+
+  try {
+    if (state.currentMode === 'online') {
+      await updateOnlineItem(id, { description: desc, location: loc, remarks: notes });
+    } else {
+      await updateOfflineItem(id, { desc, location: loc, remarks: notes });
+    }
+    closeEdit();
+    state.selectedSet.clear();
+    await refreshData();
+    showToast('✓ Item updated');
+  } catch (e) {
+    alert('❌ Error: ' + e.message);
+  } finally {
+    btn.disabled  = false;
+    btn.innerText = 'Save Changes';
+  }
 }
 
 // ── Export Sheet ──────────────────────────────────────────

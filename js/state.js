@@ -10,4 +10,5 @@ export const state = {
   selectedSet:     new Set(),
   currentFilter:   'all',
   realtimeChannel: null,
+  editingId:       null, // id of the item currently open in the Edit sheet
 };
