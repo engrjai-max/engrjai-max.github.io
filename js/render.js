@@ -2,11 +2,11 @@
 // render.js — DOM rendering: list, stats, dynamic events
 // ============================================================
 
-import { state } from './state.js?v=2';
-import { setSyncStatus, updateOnlineItem, updateOfflineItem, getOfflineItems } from './database.js?v=2';
-import { uploadImage } from './storage.js?v=2';
-import { loadOnlineDataAndRender } from './auth.js?v=2';
-import { showToast } from './ui.js?v=2';
+import { state } from './state.js';
+import { setSyncStatus, updateOnlineItem, updateOfflineItem, getOfflineItems } from './database.js';
+import { uploadImage } from './storage.js';
+import { loadOnlineDataAndRender } from './auth.js';
+import { showToast } from './ui.js';
 
 // ── Utilities ─────────────────────────────────────────────
 export function formatDate(ts) {
