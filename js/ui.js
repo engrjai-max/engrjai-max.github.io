@@ -2,10 +2,14 @@
 // ui.js — Toast, sheet controls, select-all, delete selected
 // ============================================================
 
-import { state, getLastInspectionDate, todayISO } from './state.js?v=3';
-import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=3';
-import { loadOnlineDataAndRender } from './auth.js?v=3';
-import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=3';
+import { state, getLastInspectionDate, todayISO } from './state.js?v=4';
+import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=4';
+import { loadOnlineDataAndRender } from './auth.js?v=4';
+import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=4';
+
+// Safe DOM helpers — never throw if an element is missing (e.g. stale cached HTML)
+function $(id) { return document.getElementById(id); }
+function setVal(id, val) { const el = $(id); if (el) el.value = val; }
 
 // ── Toast ─────────────────────────────────────────────────
 export function showToast(msg) {
@@ -17,7 +21,7 @@ export function showToast(msg) {
 
 // ── Add Sheet ─────────────────────────────────────────────
 export function openAdd() {
-  document.getElementById('f-date').value = getLastInspectionDate() || todayISO();
+  setVal('f-date', getLastInspectionDate() || todayISO());
   document.getElementById('add-backdrop').classList.add('open');
   document.getElementById('add-sheet').classList.add('open');
 }
@@ -44,10 +48,14 @@ export function openEditSheet() {
     }
 
     state.editingId = item.id;
-    document.getElementById('e-desc').value  = item.desc || '';
-    document.getElementById('e-loc').value   = item.location || '';
-    document.getElementById('e-date').value  = (item.inspectionDate || '').slice(0, 10);
-    document.getElementById('e-notes').value = item.remarks || '';
+    setVal('e-desc',  item.desc || '');
+    setVal('e-loc',   item.location || '');
+    setVal('e-date',  (item.inspectionDate || '').slice(0, 10));
+    setVal('e-notes', item.remarks || '');
+
+    if (!$('e-date')) {
+      console.warn('e-date field not found — the deployed index.html may be out of date. Hard-refresh the page.');
+    }
 
     document.getElementById('edit-backdrop').classList.add('open');
     document.getElementById('edit-sheet').classList.add('open');
@@ -64,15 +72,16 @@ export function closeEdit() {
 }
 
 export async function saveEdit() {
-  const id   = state.editingId;
+  const id = state.editingId;
   if (!id) return;
 
-  const desc = document.getElementById('e-desc').value.trim();
-  const loc  = document.getElementById('e-loc').value.trim();
-  const date = document.getElementById('e-date').value;
-  const notes = document.getElementById('e-notes').value.trim();
+  const desc    = ($('e-desc')?.value || '').trim();
+  const loc     = ($('e-loc')?.value || '').trim();
+  const dateEl  = $('e-date');
+  const date    = dateEl ? dateEl.value : '';
+  const notes   = ($('e-notes')?.value || '').trim();
 
-  if (!desc || !loc || !date) {
+  if (!desc || !loc || (dateEl && !date)) {
     alert('Description, location and inspection date are required.');
     return;
   }
@@ -82,10 +91,15 @@ export async function saveEdit() {
   btn.innerText = 'Saving…';
 
   try {
+    const updates = { desc, location: loc, remarks: notes };
+    if (dateEl) updates.inspectionDate = date; // only touch date if the field actually exists on this page
+
     if (state.currentMode === 'online') {
-      await updateOnlineItem(id, { description: desc, location: loc, inspection_date: date, remarks: notes });
+      const onlineUpdates = { description: desc, location: loc, remarks: notes };
+      if (dateEl) onlineUpdates.inspection_date = date;
+      await updateOnlineItem(id, onlineUpdates);
     } else {
-      await updateOfflineItem(id, { desc, location: loc, inspectionDate: date, remarks: notes });
+      await updateOfflineItem(id, updates);
     }
     closeEdit();
     state.selectedSet.clear();

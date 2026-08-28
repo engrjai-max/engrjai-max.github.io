@@ -2,9 +2,9 @@
 // pdf.js — PDF generation (preview + download via html2pdf)
 // ============================================================
 
-import { LOGO_URL } from './config.js?v=3';
-import { state } from './state.js?v=3';
-import { formatDate, escapeHtml } from './render.js?v=3';
+import { LOGO_URL } from './config.js?v=4';
+import { state } from './state.js?v=4';
+import { formatDate, escapeHtml } from './render.js?v=4';
 
 const ROWS_PER_PAGE = 12;
 

@@ -2,8 +2,8 @@
 // database.js — Supabase CRUD, offline CRUD, realtime
 // ============================================================
 
-import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineItems } from './storage.js?v=3';
-import { state } from './state.js?v=3';
+import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineItems } from './storage.js?v=4';
+import { state } from './state.js?v=4';
 
 // ── Sync indicator ────────────────────────────────────────
 export function setSyncStatus(status) {
@@ -78,8 +78,24 @@ export async function addOnlineItem(itemData, file) {
 }
 
 export async function updateOnlineItem(id, updates) {
-  const { error } = await supabaseClient.from('punch_items').update(updates).eq('id', id);
+  const { data, error } = await supabaseClient
+    .from('punch_items')
+    .update(updates)
+    .eq('id', id)
+    .select();
   if (error) throw error;
+  if (!data || data.length === 0) {
+    // Supabase/PostgREST returns success with an empty array when a Row-Level
+    // Security policy (or a trigger) silently blocks the write — it does NOT
+    // report this as an error. Surface it explicitly so the caller doesn't
+    // show a false "success" toast.
+    throw new Error(
+      `Update was accepted but changed 0 rows for item ${id}. ` +
+      `This usually means a Supabase RLS policy or trigger on "punch_items" ` +
+      `is blocking changes to one of these columns: ${Object.keys(updates).join(', ')}.`
+    );
+  }
+  return data[0];
 }
 
 export async function deleteOnlineItems(ids, itemsList) {

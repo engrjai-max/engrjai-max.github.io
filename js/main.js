@@ -2,12 +2,12 @@
 // main.js — App entry point: event listeners & filter chips
 // ============================================================
 
-import { state } from './state.js?v=3';
-import { loginOnline, logout, startOfflineMode } from './auth.js?v=3';
-import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, showToast, selectAllToggle, deleteSelected, openEditSheet, closeEdit, saveEdit } from './ui.js?v=3';
-import { createNewItem } from './items.js?v=3';
-import { previewPDF, downloadPDF } from './pdf.js?v=3';
-import { refreshData } from './render.js?v=3';
+import { state } from './state.js?v=4';
+import { loginOnline, logout, startOfflineMode } from './auth.js?v=4';
+import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, showToast, selectAllToggle, deleteSelected, openEditSheet, closeEdit, saveEdit } from './ui.js?v=4';
+import { createNewItem } from './items.js?v=4';
+import { previewPDF, downloadPDF } from './pdf.js?v=4';
+import { refreshData } from './render.js?v=4';
 
 // ── Auth ──────────────────────────────────────────────────
 document.getElementById('online-login-btn').onclick = async () => {

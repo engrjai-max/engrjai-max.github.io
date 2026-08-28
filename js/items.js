@@ -2,22 +2,23 @@
 // items.js — Create new punch item (form logic)
 // ============================================================
 
-import { state, rememberInspectionDate } from './state.js?v=3';
-import { setSyncStatus, addOnlineItem, addOfflineItem, getOfflineItems } from './database.js?v=3';
-import { loadOnlineDataAndRender } from './auth.js?v=3';
-import { renderAll } from './render.js?v=3';
-import { closeAdd, showToast } from './ui.js?v=3';
+import { state, rememberInspectionDate } from './state.js?v=4';
+import { setSyncStatus, addOnlineItem, addOfflineItem, getOfflineItems } from './database.js?v=4';
+import { loadOnlineDataAndRender } from './auth.js?v=4';
+import { renderAll } from './render.js?v=4';
+import { closeAdd, showToast } from './ui.js?v=4';
 
 export async function createNewItem() {
-  const desc   = document.getElementById('f-desc').value.trim();
-  const loc    = document.getElementById('f-loc').value.trim();
-  const date   = document.getElementById('f-date').value;
-  const pri    = document.getElementById('f-pri').value;
-  const status = document.getElementById('f-status').value;
-  const notes  = document.getElementById('f-notes').value.trim();
-  const file   = document.getElementById('f-photo-in').files[0];
+  const desc     = document.getElementById('f-desc').value.trim();
+  const loc      = document.getElementById('f-loc').value.trim();
+  const dateEl   = document.getElementById('f-date');
+  const date     = dateEl ? dateEl.value : '';
+  const pri      = document.getElementById('f-pri').value;
+  const status   = document.getElementById('f-status').value;
+  const notes    = document.getElementById('f-notes').value.trim();
+  const file     = document.getElementById('f-photo-in').files[0];
 
-  if (!desc || !loc || !date || !file) {
+  if (!desc || !loc || (dateEl && !date) || !file) {
     alert('Description, location, inspection date and inspection photo are required.');
     return;
   }
@@ -43,7 +44,7 @@ export async function createNewItem() {
       state.punchItems = await getOfflineItems();
       renderAll();
     }
-    rememberInspectionDate(date);
+    if (dateEl && date) rememberInspectionDate(date);
     closeAdd();
     showToast('✓ Item created');
   } catch (e) {
