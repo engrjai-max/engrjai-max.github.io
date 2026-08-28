@@ -9,6 +9,8 @@
   <!-- Third-party libs (UMD builds, loaded before ES modules) -->
   <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
   <!-- Styles -->
   <link rel="stylesheet" href="css/styles.css">
@@ -173,6 +175,7 @@
       <input type="date" id="exp-date" required>
     </div>
     <button class="export-btn" id="previewPdfBtn">Preview &amp; Export PDF</button>
+    <button class="export-btn" id="exportDocxBtn" style="margin-top:8px;background:var(--surface2);color:var(--text)">📝 Export as Word (.docx)</button>
   </div>
 
   <!-- PDF Preview Modal -->
@@ -189,7 +192,7 @@
 </div><!-- /#main-app -->
 
 <!-- App entry point (ES module) -->
-<script type="module" src="js/main.js?v=5"></script>
+<script type="module" src="js/main.js?v=6"></script>
 
 </body>
 </html>
