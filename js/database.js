@@ -2,8 +2,8 @@
 // database.js — Supabase CRUD, offline CRUD, realtime
 // ============================================================
 
-import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineItems } from './storage.js?v=5';
-import { state } from './state.js?v=5';
+import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineItems } from './storage.js?v=6';
+import { state } from './state.js?v=6';
 
 // ── Sync indicator ────────────────────────────────────────
 export function setSyncStatus(status) {
@@ -100,8 +100,23 @@ export async function updateOnlineItem(id, updates) {
 
 export async function deleteOnlineItems(ids, itemsList) {
   // No stored paths to clean up — photos are just URLs in this schema
-  const { error } = await supabaseClient.from('punch_items').delete().in('id', ids);
+  const { data, error } = await supabaseClient
+    .from('punch_items')
+    .delete()
+    .in('id', ids)
+    .select();
   if (error) throw error;
+  if (!data || data.length === 0) {
+    // Same PostgREST gotcha as updateOnlineItem: a missing/blocking RLS
+    // DELETE policy returns success with 0 rows removed, not an error.
+    throw new Error(
+      `Delete was accepted but removed 0 rows (of ${ids.length} selected). ` +
+      `This usually means "punch_items" has no DELETE policy for the authenticated role in Supabase RLS.`
+    );
+  }
+  if (data.length < ids.length) {
+    console.warn(`Only ${data.length} of ${ids.length} selected items were actually deleted in Supabase.`);
+  }
 }
 
 // ── Offline CRUD ──────────────────────────────────────────

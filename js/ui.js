@@ -2,10 +2,10 @@
 // ui.js — Toast, sheet controls, select-all, delete selected
 // ============================================================
 
-import { state, getLastInspectionDate, todayISO } from './state.js?v=5';
-import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=5';
-import { loadOnlineDataAndRender } from './auth.js?v=5';
-import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=5';
+import { state, getLastInspectionDate, todayISO } from './state.js?v=6';
+import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=6';
+import { loadOnlineDataAndRender } from './auth.js?v=6';
+import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=6';
 
 // Safe DOM helpers — never throw if an element is missing (e.g. stale cached HTML)
 function $(id) { return document.getElementById(id); }
@@ -147,14 +147,19 @@ export async function deleteSelected() {
   if (!ids.length) { alert('No items selected'); return; }
   if (!confirm(`Delete ${ids.length} item(s)?`)) return;
 
-  if (state.currentMode === 'online') {
-    await deleteOnlineItems(ids, state.punchItems);
-    await loadOnlineDataAndRender();
-  } else {
-    await deleteOfflineItems(ids);
-    state.punchItems = await getOfflineItems();
+  try {
+    if (state.currentMode === 'online') {
+      await deleteOnlineItems(ids, state.punchItems);
+      await loadOnlineDataAndRender();
+    } else {
+      await deleteOfflineItems(ids);
+      state.punchItems = await getOfflineItems();
+      renderAll();
+    }
+    state.selectedSet.clear();
     renderAll();
+    showToast('✓ Item(s) deleted');
+  } catch (e) {
+    alert('❌ Error: ' + e.message);
   }
-  state.selectedSet.clear();
-  renderAll();
 }

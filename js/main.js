@@ -2,12 +2,13 @@
 // main.js — App entry point: event listeners & filter chips
 // ============================================================
 
-import { state } from './state.js?v=5';
-import { loginOnline, logout, startOfflineMode } from './auth.js?v=5';
-import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, showToast, selectAllToggle, deleteSelected, openEditSheet, closeEdit, saveEdit } from './ui.js?v=5';
-import { createNewItem } from './items.js?v=5';
-import { previewPDF, downloadPDF } from './pdf.js?v=5';
-import { refreshData } from './render.js?v=5';
+import { state } from './state.js?v=6';
+import { loginOnline, logout, startOfflineMode } from './auth.js?v=6';
+import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, showToast, selectAllToggle, deleteSelected, openEditSheet, closeEdit, saveEdit } from './ui.js?v=6';
+import { createNewItem } from './items.js?v=6';
+import { previewPDF, downloadPDF } from './pdf.js?v=6';
+import { downloadDOCX } from './docx-export.js?v=6';
+import { refreshData } from './render.js?v=6';
 
 // ── Auth ──────────────────────────────────────────────────
 document.getElementById('online-login-btn').onclick = async () => {
@@ -39,6 +40,9 @@ document.getElementById('exportPdfBtn').onclick    = openExportSheet;
 document.getElementById('previewPdfBtn').onclick   = previewPDF;
 document.getElementById('downloadPdfBtn').onclick  = downloadPDF;
 document.getElementById('closePreviewBtn').onclick = closePreviewModal;
+
+// ── DOCX export ───────────────────────────────────────────
+document.getElementById('exportDocxBtn').onclick = downloadDOCX;
 
 // ── Bulk actions ──────────────────────────────────────────
 document.getElementById('selectAllBtn').onclick      = selectAllToggle;
