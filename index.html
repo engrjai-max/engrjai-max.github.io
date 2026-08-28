@@ -70,6 +70,7 @@
     <div class="filter-chip" data-filter="VOIDED">Voided</div>
     <div class="select-actions">
       <button class="select-btn" id="selectAllBtn">☐ Select All</button>
+      <button class="select-btn" id="editSelectedBtn">✏️ Edit</button>
       <button class="select-btn" id="deleteSelectedBtn">🗑 Delete</button>
     </div>
   </div>
@@ -124,6 +125,26 @@
       <textarea id="f-notes" rows="2"></textarea>
     </div>
     <button class="submit-btn" id="addItemBtn">Create Item</button>
+  </div>
+
+  <!-- Edit Sheet -->
+  <div class="sheet-backdrop" id="edit-backdrop"></div>
+  <div class="sheet" id="edit-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">✏️ Edit Punch Item</div>
+    <div class="field">
+      <label>Description *</label>
+      <input type="text" id="e-desc" placeholder="e.g., Cracked tile, missing grout">
+    </div>
+    <div class="field">
+      <label>Location (Room/Floor) *</label>
+      <input type="text" id="e-loc" placeholder="e.g., Unit 3B, 2nd Floor">
+    </div>
+    <div class="field">
+      <label>Remarks (Optional)</label>
+      <textarea id="e-notes" rows="2"></textarea>
+    </div>
+    <button class="submit-btn" id="saveEditBtn">Save Changes</button>
   </div>
 
   <!-- Export Sheet -->
