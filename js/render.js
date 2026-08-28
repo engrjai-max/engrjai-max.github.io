@@ -2,11 +2,11 @@
 // render.js — DOM rendering: list, stats, dynamic events
 // ============================================================
 
-import { state } from './state.js';
-import { setSyncStatus, updateOnlineItem, updateOfflineItem, getOfflineItems } from './database.js';
-import { uploadImage } from './storage.js';
-import { loadOnlineDataAndRender } from './auth.js';
-import { showToast } from './ui.js';
+import { state } from './state.js?v=3';
+import { setSyncStatus, updateOnlineItem, updateOfflineItem, getOfflineItems } from './database.js?v=3';
+import { uploadImage } from './storage.js?v=3';
+import { loadOnlineDataAndRender } from './auth.js?v=3';
+import { showToast } from './ui.js?v=3';
 
 // ── Utilities ─────────────────────────────────────────────
 export function formatDate(ts) {
@@ -80,7 +80,7 @@ export function renderAll() {
             <span class="badge badge-gray">📍 ${escapeHtml(item.location)}</span>
             <span class="badge ${priClass}">⚠️ ${priLabel}</span>
             <span class="badge ${statusClass}">${item.status}</span>
-            <span class="date-info">📅 ${formatDate(item.createdAt)}${item.closedAt ? ' | ✅ ' + formatDate(item.closedAt) : ''}</span>
+            <span class="date-info">📅 ${formatDate(item.inspectionDate || item.createdAt)}${item.closedAt ? ' | ✅ ' + formatDate(item.closedAt) : ''}</span>
           </div>
           ${item.remarks ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">📝 ${escapeHtml(item.remarks)}</div>` : ''}
         </div>

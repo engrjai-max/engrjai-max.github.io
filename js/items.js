@@ -2,22 +2,23 @@
 // items.js — Create new punch item (form logic)
 // ============================================================
 
-import { state } from './state.js';
-import { setSyncStatus, addOnlineItem, addOfflineItem, getOfflineItems } from './database.js';
-import { loadOnlineDataAndRender } from './auth.js';
-import { renderAll } from './render.js';
-import { closeAdd, showToast } from './ui.js';
+import { state, rememberInspectionDate } from './state.js?v=3';
+import { setSyncStatus, addOnlineItem, addOfflineItem, getOfflineItems } from './database.js?v=3';
+import { loadOnlineDataAndRender } from './auth.js?v=3';
+import { renderAll } from './render.js?v=3';
+import { closeAdd, showToast } from './ui.js?v=3';
 
 export async function createNewItem() {
   const desc   = document.getElementById('f-desc').value.trim();
   const loc    = document.getElementById('f-loc').value.trim();
+  const date   = document.getElementById('f-date').value;
   const pri    = document.getElementById('f-pri').value;
   const status = document.getElementById('f-status').value;
   const notes  = document.getElementById('f-notes').value.trim();
   const file   = document.getElementById('f-photo-in').files[0];
 
-  if (!desc || !loc || !file) {
-    alert('Description, location and inspection photo are required.');
+  if (!desc || !loc || !date || !file) {
+    alert('Description, location, inspection date and inspection photo are required.');
     return;
   }
 
@@ -30,7 +31,7 @@ export async function createNewItem() {
   try {
     if (state.currentMode === 'online') {
       setSyncStatus('syncing');
-      await addOnlineItem({ desc, location: loc, priority: pri, status, remarks: notes }, file);
+      await addOnlineItem({ desc, location: loc, priority: pri, status, remarks: notes, inspectionDate: date }, file);
       await loadOnlineDataAndRender();
     } else {
       const base64 = await new Promise(res => {
@@ -38,10 +39,11 @@ export async function createNewItem() {
         rd.onload = () => res(rd.result);
         rd.readAsDataURL(file);
       });
-      await addOfflineItem({ desc, location: loc, priority: pri, status, remarks: notes }, base64);
+      await addOfflineItem({ desc, location: loc, priority: pri, status, remarks: notes, inspectionDate: date }, base64);
       state.punchItems = await getOfflineItems();
       renderAll();
     }
+    rememberInspectionDate(date);
     closeAdd();
     showToast('✓ Item created');
   } catch (e) {

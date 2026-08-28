@@ -2,10 +2,10 @@
 // ui.js — Toast, sheet controls, select-all, delete selected
 // ============================================================
 
-import { state } from './state.js';
-import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js';
-import { loadOnlineDataAndRender } from './auth.js';
-import { renderAll, updateSelectAllUI, refreshData } from './render.js';
+import { state, getLastInspectionDate, todayISO } from './state.js?v=3';
+import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=3';
+import { loadOnlineDataAndRender } from './auth.js?v=3';
+import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=3';
 
 // ── Toast ─────────────────────────────────────────────────
 export function showToast(msg) {
@@ -17,6 +17,7 @@ export function showToast(msg) {
 
 // ── Add Sheet ─────────────────────────────────────────────
 export function openAdd() {
+  document.getElementById('f-date').value = getLastInspectionDate() || todayISO();
   document.getElementById('add-backdrop').classList.add('open');
   document.getElementById('add-sheet').classList.add('open');
 }
@@ -30,24 +31,30 @@ export function closeAdd() {
 
 // ── Edit Sheet ────────────────────────────────────────────
 export function openEditSheet() {
-  const ids = Array.from(state.selectedSet);
-  if (ids.length !== 1) {
-    alert(ids.length === 0 ? 'Select an item to edit.' : 'Select only one item to edit at a time.');
-    return;
-  }
-  const item = state.punchItems.find(i => String(i.id) === String(ids[0]));
-  if (!item) {
-    alert('Could not find the selected item. Try refreshing and selecting again.');
-    return;
-  }
+  try {
+    const ids = Array.from(state.selectedSet);
+    if (ids.length !== 1) {
+      alert(ids.length === 0 ? 'Select an item to edit.' : 'Select only one item to edit at a time.');
+      return;
+    }
+    const item = state.punchItems.find(i => String(i.id) === String(ids[0]));
+    if (!item) {
+      alert('Could not find the selected item. Try refreshing and selecting again.');
+      return;
+    }
 
-  state.editingId = item.id;
-  document.getElementById('e-desc').value  = item.desc || '';
-  document.getElementById('e-loc').value   = item.location || '';
-  document.getElementById('e-notes').value = item.remarks || '';
+    state.editingId = item.id;
+    document.getElementById('e-desc').value  = item.desc || '';
+    document.getElementById('e-loc').value   = item.location || '';
+    document.getElementById('e-date').value  = (item.inspectionDate || '').slice(0, 10);
+    document.getElementById('e-notes').value = item.remarks || '';
 
-  document.getElementById('edit-backdrop').classList.add('open');
-  document.getElementById('edit-sheet').classList.add('open');
+    document.getElementById('edit-backdrop').classList.add('open');
+    document.getElementById('edit-sheet').classList.add('open');
+  } catch (e) {
+    console.error('openEditSheet failed:', e);
+    alert('❌ Edit failed to open: ' + e.message);
+  }
 }
 
 export function closeEdit() {
@@ -62,10 +69,11 @@ export async function saveEdit() {
 
   const desc = document.getElementById('e-desc').value.trim();
   const loc  = document.getElementById('e-loc').value.trim();
+  const date = document.getElementById('e-date').value;
   const notes = document.getElementById('e-notes').value.trim();
 
-  if (!desc || !loc) {
-    alert('Description and location are required.');
+  if (!desc || !loc || !date) {
+    alert('Description, location and inspection date are required.');
     return;
   }
 
@@ -75,9 +83,9 @@ export async function saveEdit() {
 
   try {
     if (state.currentMode === 'online') {
-      await updateOnlineItem(id, { description: desc, location: loc, remarks: notes });
+      await updateOnlineItem(id, { description: desc, location: loc, inspection_date: date, remarks: notes });
     } else {
-      await updateOfflineItem(id, { desc, location: loc, remarks: notes });
+      await updateOfflineItem(id, { desc, location: loc, inspectionDate: date, remarks: notes });
     }
     closeEdit();
     state.selectedSet.clear();

@@ -2,8 +2,8 @@
 // database.js — Supabase CRUD, offline CRUD, realtime
 // ============================================================
 
-import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineItems } from './storage.js';
-import { state } from './state.js';
+import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineItems } from './storage.js?v=3';
+import { state } from './state.js?v=3';
 
 // ── Sync indicator ────────────────────────────────────────
 export function setSyncStatus(status) {
@@ -28,6 +28,7 @@ export async function fetchOnlineItems() {
     priority:        item.priority,
     status:          item.status,
     remarks:         item.remarks,
+    inspectionDate:  item.inspection_date,
     inspectionPhoto: item.inspection_photo,
     closeoutPhoto:   item.closeout_photo,
     createdAt:       item.created_at,
@@ -52,6 +53,7 @@ export async function addOnlineItem(itemData, file) {
       priority:          itemData.priority,
       status:            itemData.status,
       remarks:           itemData.remarks || '',
+      inspection_date:   itemData.inspectionDate || null,
       inspection_photo:  inspectionPhotoUrl,
       created_at:        new Date().toISOString(),
     })
@@ -67,6 +69,7 @@ export async function addOnlineItem(itemData, file) {
     priority:        data.priority,
     status:          data.status,
     remarks:         data.remarks,
+    inspectionDate:  data.inspection_date,
     inspectionPhoto: data.inspection_photo,
     closeoutPhoto:   data.closeout_photo,
     createdAt:       data.created_at,
@@ -96,6 +99,7 @@ export async function addOfflineItem(itemData, base64Image) {
     priority:        itemData.priority,
     status:          itemData.status,
     remarks:         itemData.remarks || '',
+    inspectionDate:  itemData.inspectionDate || '',
     inspectionPhoto: base64Image,
     closeoutPhoto:   '',
     createdAt:       new Date().toISOString(),

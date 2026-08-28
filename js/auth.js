@@ -2,12 +2,12 @@
 // auth.js — Login (online), logout, offline mode entry
 // ============================================================
 
-import { supabaseClient } from './storage.js';
-import { SHARED_EMAIL } from './config.js';
-import { state } from './state.js';
-import { setSyncStatus, fetchOnlineItems, subscribeToRealtime, getOfflineItems } from './database.js';
-import { renderAll } from './render.js';
-import { showToast } from './ui.js';
+import { supabaseClient } from './storage.js?v=3';
+import { SHARED_EMAIL } from './config.js?v=3';
+import { state } from './state.js?v=3';
+import { setSyncStatus, fetchOnlineItems, subscribeToRealtime, getOfflineItems } from './database.js?v=3';
+import { renderAll } from './render.js?v=3';
+import { showToast } from './ui.js?v=3';
 
 export async function loginOnline(password) {
   const errEl = document.getElementById('gate-err');

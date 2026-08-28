@@ -2,9 +2,9 @@
 // pdf.js — PDF generation (preview + download via html2pdf)
 // ============================================================
 
-import { LOGO_URL } from './config.js';
-import { state } from './state.js';
-import { formatDate, escapeHtml } from './render.js';
+import { LOGO_URL } from './config.js?v=3';
+import { state } from './state.js?v=3';
+import { formatDate, escapeHtml } from './render.js?v=3';
 
 const ROWS_PER_PAGE = 12;
 
@@ -31,7 +31,7 @@ export function generatePDFHTML(itemsToExport, inspDate, projName, projLoc) {
         <td style="width:16%">${inspImg}</td>
         <td style="width:16%">${closeImg}</td>
         <td style="width:8%">${it.status}</td>
-        <td style="width:8%">${formatDate(it.createdAt)}<br>${it.closedAt ? formatDate(it.closedAt) : '—'}</td>
+        <td style="width:8%">${formatDate(it.inspectionDate || it.createdAt)}<br>${it.closedAt ? formatDate(it.closedAt) : '—'}</td>
         <td style="width:13%">${escapeHtml(it.remarks || '')}</td>
       </tr>`;
     });
