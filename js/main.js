@@ -4,7 +4,7 @@
 
 import { state } from './state.js?v=6';
 import { loginOnline, logout, startOfflineMode } from './auth.js?v=6';
-import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, showToast, selectAllToggle, deleteSelected, openEditSheet, closeEdit, saveEdit } from './ui.js?v=6';
+import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, showToast, selectAllToggle, deleteSelected, openEditSheet, closeEdit, saveEdit, confirmMassDelete, closeMassDelete } from './ui.js?v=6';
 import { createNewItem } from './items.js?v=6';
 import { previewPDF, downloadPDF } from './pdf.js?v=6';
 import { downloadDOCX } from './docx-export.js?v=6';
@@ -13,10 +13,11 @@ import { refreshData } from './render.js?v=6';
 // ── Auth ──────────────────────────────────────────────────
 document.getElementById('online-login-btn').onclick = async () => {
   const pwd = document.getElementById('login-password').value;
-  await loginOnline(pwd); // errors shown in gate-err by loginOnline
+  const name = document.getElementById('login-name').value;
+  await loginOnline(pwd, name); // errors shown in gate-err by loginOnline
 };
 
-document.getElementById('offline-mode-btn').onclick = () => startOfflineMode();
+document.getElementById('offline-mode-btn').onclick = () => startOfflineMode(document.getElementById('login-name').value);
 document.getElementById('logoutBtn').onclick         = () => logout();
 
 // ── Add item ──────────────────────────────────────────────
@@ -48,6 +49,8 @@ document.getElementById('exportDocxBtn').onclick = downloadDOCX;
 document.getElementById('selectAllBtn').onclick      = selectAllToggle;
 document.getElementById('editSelectedBtn').onclick   = openEditSheet;
 document.getElementById('deleteSelectedBtn').onclick = deleteSelected;
+document.getElementById('confirmMassDeleteBtn').onclick = confirmMassDelete;
+document.getElementById('mass-delete-backdrop').addEventListener('click', closeMassDelete);
 
 // ── Edit sheet ────────────────────────────────────────────
 document.getElementById('saveEditBtn').onclick = saveEdit;

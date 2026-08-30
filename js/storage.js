@@ -44,12 +44,22 @@ export async function uploadImage(file, folderPrefix, onSyncStatus) {
     .upload(fileName, compressed, { cacheControl: '3600' });
   if (error) throw error;
 
-  const { data: publicUrlData } = supabaseClient.storage
+  const { data: signed, error: signedError } = await supabaseClient.storage
     .from(STORAGE_BUCKET)
-    .getPublicUrl(fileName);
+    .createSignedUrl(fileName, 60 * 60);
+  if (signedError) throw signedError;
 
   if (onSyncStatus) onSyncStatus('online');
-  return { url: publicUrlData.publicUrl, path: fileName };
+  return { url: signed.signedUrl, path: fileName };
+}
+
+export async function getImageUrl(path, legacyUrl = '') {
+  if (!path) return legacyUrl;
+  const { data, error } = await supabaseClient.storage
+    .from(STORAGE_BUCKET)
+    .createSignedUrl(path, 60 * 60);
+  if (error) throw error;
+  return data.signedUrl;
 }
 
 export async function deleteImage(path) {

@@ -4,17 +4,18 @@
 
 import { supabaseClient } from './storage.js?v=6';
 import { SHARED_EMAIL } from './config.js?v=6';
-import { state } from './state.js?v=6';
+import { state, setActorName, restoreActorName } from './state.js?v=6';
 import { setSyncStatus, fetchOnlineItems, subscribeToRealtime, getOfflineItems } from './database.js?v=6';
 import { renderAll } from './render.js?v=6';
 import { showToast } from './ui.js?v=6';
 
-export async function loginOnline(password) {
+export async function loginOnline(password, actorName) {
   const errEl = document.getElementById('gate-err');
   errEl.innerText = '';
   setSyncStatus('syncing');
 
   try {
+    setActorName(actorName);
     const { error } = await supabaseClient.auth.signInWithPassword({
       email: SHARED_EMAIL,
       password,
@@ -48,8 +49,18 @@ export async function logout() {
   setSyncStatus('offline');
 }
 
-export async function startOfflineMode() {
+export async function verifyCurrentUserPassword(password) {
+  if (!password) throw new Error('Enter the full team password.');
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email: SHARED_EMAIL,
+    password,
+  });
+  if (error) throw new Error('Password verification failed.');
+}
+
+export async function startOfflineMode(actorName) {
   try {
+    setActorName(actorName);
     state.currentMode = 'offline';
     state.punchItems  = await getOfflineItems();
     renderAll();
@@ -62,6 +73,11 @@ export async function startOfflineMode() {
     document.getElementById('gate-err').innerText = '❌ ' + e.message;
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const name = document.getElementById('login-name');
+  if (name) name.value = restoreActorName();
+});
 
 export async function loadOnlineDataAndRender() {
   try {

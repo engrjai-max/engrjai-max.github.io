@@ -5,6 +5,7 @@
 import { state, getLastInspectionDate, todayISO } from './state.js?v=6';
 import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=6';
 import { loadOnlineDataAndRender } from './auth.js?v=6';
+import { verifyCurrentUserPassword } from './auth.js?v=6';
 import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=6';
 
 // Safe DOM helpers — never throw if an element is missing (e.g. stale cached HTML)
@@ -145,8 +146,48 @@ export function selectAllToggle() {
 export async function deleteSelected() {
   const ids = Array.from(state.selectedSet);
   if (!ids.length) { alert('No items selected'); return; }
+  if (ids.length > 5) {
+    if (state.currentMode !== 'online') {
+      alert('Mass deletion is unavailable in offline mode because the team password cannot be verified without connecting to the team account. Delete up to five local review items at a time.');
+      return;
+    }
+    $('mass-delete-count').innerText = String(ids.length);
+    $('mass-delete-name').value = state.actorName;
+    $('mass-delete-password').value = '';
+    $('mass-delete-backdrop').classList.add('open');
+    $('mass-delete-sheet').classList.add('open');
+    $('mass-delete-name').focus();
+    return;
+  }
   if (!confirm(`Delete ${ids.length} item(s)?`)) return;
+  await performDelete(ids);
+}
 
+export async function confirmMassDelete() {
+  const ids = Array.from(state.selectedSet);
+  const statedName = ($('mass-delete-name').value || '').trim().replace(/\s+/g, ' ');
+  const password = $('mass-delete-password').value;
+  if (ids.length <= 5) return;
+  if (!state.actorName || statedName !== state.actorName) {
+    alert('State your name exactly as it appears in this session.');
+    return;
+  }
+  try {
+    await verifyCurrentUserPassword(password);
+    await performDelete(ids);
+    closeMassDelete();
+  } catch (e) {
+    alert('❌ ' + e.message);
+  }
+}
+
+export function closeMassDelete() {
+  $('mass-delete-backdrop').classList.remove('open');
+  $('mass-delete-sheet').classList.remove('open');
+  $('mass-delete-password').value = '';
+}
+
+async function performDelete(ids) {
   try {
     if (state.currentMode === 'online') {
       await deleteOnlineItems(ids, state.punchItems);

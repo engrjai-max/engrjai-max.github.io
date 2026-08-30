@@ -164,8 +164,8 @@ function attachDynamicEvents() {
         try {
           if (state.currentMode === 'online') {
             setSyncStatus('syncing');
-            const { url } = await uploadImage(file, `closeout/${id}`);
-            await updateOnlineItem(id, { closeout_photo: url });
+            const { url, path } = await uploadImage(file, `closeout/${id}`);
+            await updateOnlineItem(id, { closeout_photo: url, closeout_photo_path: path });
           } else {
             const base64 = await new Promise(res => {
               const rd = new FileReader();

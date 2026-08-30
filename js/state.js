@@ -11,7 +11,20 @@ export const state = {
   currentFilter:   'all',
   realtimeChannel: null,
   editingId:       null, // id of the item currently open in the Edit sheet
+  actorName:       '',
+  sessionId:       crypto.randomUUID(),
 };
+
+export function setActorName(name) {
+  const cleaned = String(name || '').trim().replace(/\s+/g, ' ');
+  if (cleaned.length < 2 || cleaned.length > 120) throw new Error('Enter your full name before continuing.');
+  state.actorName = cleaned;
+  try { sessionStorage.setItem('tsdci_actor_name', cleaned); } catch (_) { /* session-only is intentional */ }
+}
+
+export function restoreActorName() {
+  try { return sessionStorage.getItem('tsdci_actor_name') || ''; } catch (_) { return ''; }
+}
 
 // ── Remembered "last inspection date" (for pre-filling new items) ──
 const LAST_DATE_KEY = 'tsdci_last_inspection_date';

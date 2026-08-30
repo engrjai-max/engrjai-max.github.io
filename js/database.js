@@ -2,8 +2,9 @@
 // database.js — Supabase CRUD, offline CRUD, realtime
 // ============================================================
 
-import { supabaseClient, uploadImage, deleteImage, getOfflineItems, saveOfflineItems } from './storage.js?v=6';
+import { supabaseClient, uploadImage, deleteImage, getImageUrl, getOfflineItems, saveOfflineItems } from './storage.js?v=6';
 import { state } from './state.js?v=6';
+import { recordAudit } from './audit.js?v=6';
 
 // ── Sync indicator ────────────────────────────────────────
 export function setSyncStatus(status) {
@@ -21,7 +22,7 @@ export async function fetchOnlineItems() {
   if (error) throw error;
 
   setSyncStatus('online');
-  return data.map(item => ({
+  return Promise.all(data.map(async item => ({
     id:              item.id,
     desc:            item.description,
     location:        item.location,
@@ -29,20 +30,23 @@ export async function fetchOnlineItems() {
     status:          item.status,
     remarks:         item.remarks,
     inspectionDate:  item.inspection_date,
-    inspectionPhoto: item.inspection_photo,
-    closeoutPhoto:   item.closeout_photo,
+    inspectionPhotoPath: item.inspection_photo_path,
+    closeoutPhotoPath:   item.closeout_photo_path,
+    inspectionPhoto: await getImageUrl(item.inspection_photo_path, item.inspection_photo),
+    closeoutPhoto: await getImageUrl(item.closeout_photo_path, item.closeout_photo),
     createdAt:       item.created_at,
     closedAt:        item.closed_at,
-  }));
+  })));
 }
 
 export async function addOnlineItem(itemData, file) {
   setSyncStatus('syncing');
-  let inspectionPhotoUrl = '';
+  let inspectionPhotoUrl = '', inspectionPhotoPath = '';
 
   if (file) {
-    const { url } = await uploadImage(file, `inspections/${Date.now()}`);
+    const { url, path } = await uploadImage(file, `inspections/${Date.now()}`);
     inspectionPhotoUrl = url;
+    inspectionPhotoPath = path;
   }
 
   const { data, error } = await supabaseClient
@@ -55,6 +59,7 @@ export async function addOnlineItem(itemData, file) {
       remarks:           itemData.remarks || '',
       inspection_date:   itemData.inspectionDate || null,
       inspection_photo:  inspectionPhotoUrl,
+      inspection_photo_path: inspectionPhotoPath,
       created_at:        new Date().toISOString(),
     })
     .select()
@@ -62,6 +67,7 @@ export async function addOnlineItem(itemData, file) {
   if (error) throw error;
 
   setSyncStatus('online');
+  await recordAudit('create', data.id, { description: data.description, location: data.location });
   return {
     id:              data.id,
     desc:            data.description,
@@ -70,8 +76,10 @@ export async function addOnlineItem(itemData, file) {
     status:          data.status,
     remarks:         data.remarks,
     inspectionDate:  data.inspection_date,
-    inspectionPhoto: data.inspection_photo,
-    closeoutPhoto:   data.closeout_photo,
+    inspectionPhotoPath: data.inspection_photo_path,
+    closeoutPhotoPath: data.closeout_photo_path,
+    inspectionPhoto: await getImageUrl(data.inspection_photo_path, data.inspection_photo),
+    closeoutPhoto: await getImageUrl(data.closeout_photo_path, data.closeout_photo),
     createdAt:       data.created_at,
     closedAt:        data.closed_at,
   };
@@ -95,11 +103,12 @@ export async function updateOnlineItem(id, updates) {
       `is blocking changes to one of these columns: ${Object.keys(updates).join(', ')}.`
     );
   }
+  await recordAudit(updates.closeout_photo_path ? 'upload_closeout' : 'update', id, { fields: Object.keys(updates) });
   return data[0];
 }
 
 export async function deleteOnlineItems(ids, itemsList) {
-  // No stored paths to clean up — photos are just URLs in this schema
+  const selected = itemsList.filter(item => ids.includes(item.id));
   const { data, error } = await supabaseClient
     .from('punch_items')
     .delete()
@@ -117,6 +126,8 @@ export async function deleteOnlineItems(ids, itemsList) {
   if (data.length < ids.length) {
     console.warn(`Only ${data.length} of ${ids.length} selected items were actually deleted in Supabase.`);
   }
+  await Promise.all(selected.flatMap(item => [item.inspectionPhotoPath, item.closeoutPhotoPath]).filter(Boolean).map(deleteImage));
+  await recordAudit(ids.length > 5 ? 'mass_delete' : 'delete', null, { itemIds: ids, count: ids.length });
 }
 
 // ── Offline CRUD ──────────────────────────────────────────
