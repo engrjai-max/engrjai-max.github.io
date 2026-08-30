@@ -40,6 +40,9 @@ body {
   min-height: 100dvh;
   font-size: 15px;
 }
+.sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+.safety-copy { color:var(--text2); font-size:13px; line-height:1.5; margin:0 0 16px; }
+.danger-btn { background:var(--red); }
 
 /* ── Gate / Login ── */
 #gate {
