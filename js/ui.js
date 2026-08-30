@@ -6,7 +6,7 @@ import { state, getLastInspectionDate, todayISO } from './state.js?v=6';
 import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=6';
 import { loadOnlineDataAndRender } from './auth.js?v=6';
 import { verifyCurrentUserPassword } from './auth.js?v=6';
-import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=6';
+import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=7';
 
 // Safe DOM helpers — never throw if an element is missing (e.g. stale cached HTML)
 function $(id) { return document.getElementById(id); }

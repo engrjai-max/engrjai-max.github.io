@@ -4,7 +4,7 @@
 
 import { LOGO_URL } from './config.js?v=6';
 import { state } from './state.js?v=6';
-import { formatDate, escapeHtml } from './render.js?v=6';
+import { formatDate, escapeHtml } from './render.js?v=7';
 
 // Each row holds two ~70px-tall photos, so 12 rows (the old value) is far
 // taller than one A4-landscape page can actually hold — that overflow was

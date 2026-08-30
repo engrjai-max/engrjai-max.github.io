@@ -33,6 +33,7 @@ export function renderAll() {
   const { punchItems, currentFilter, selectedSet } = state;
 
   document.getElementById('cnt-open').innerText = punchItems.filter(i => i.status !== 'CLOSED' && i.status !== 'VOIDED').length;
+  document.getElementById('cnt-verify').innerText = punchItems.filter(i => i.status === 'FOR VERIFICATION').length;
   document.getElementById('cnt-high').innerText = punchItems.filter(i => i.priority === 'H').length;
   document.getElementById('cnt-prog').innerText = punchItems.filter(i => i.status === 'IN PROGRESS').length;
   document.getElementById('cnt-done').innerText = punchItems.filter(i => i.status === 'CLOSED').length;

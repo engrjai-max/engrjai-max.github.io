@@ -5,7 +5,7 @@
 // ============================================================
 
 import { state } from './state.js?v=6';
-import { formatDate } from './render.js?v=6';
+import { formatDate } from './render.js?v=7';
 
 const MAX_IMG_WIDTH = 140; // px, matches roughly the PDF's max-height:70px photos
 

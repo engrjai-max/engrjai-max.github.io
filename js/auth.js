@@ -6,7 +6,7 @@ import { supabaseClient } from './storage.js?v=6';
 import { SHARED_EMAIL } from './config.js?v=6';
 import { state, setActorName, restoreActorName } from './state.js?v=6';
 import { setSyncStatus, fetchOnlineItems, subscribeToRealtime, getOfflineItems } from './database.js?v=6';
-import { renderAll } from './render.js?v=6';
+import { renderAll } from './render.js?v=7';
 import { showToast } from './ui.js?v=6';
 
 export async function loginOnline(password, actorName) {
