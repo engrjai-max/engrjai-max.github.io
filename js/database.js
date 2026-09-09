@@ -5,6 +5,7 @@
 import { supabaseClient, uploadImage, deleteImage, getImageUrl, getOfflineItems, saveOfflineItems } from './storage.js?v=8';
 import { state } from './state.js?v=8';
 import { recordAudit } from './audit.js?v=8';
+import { STORAGE_BUCKET } from './config.js?v=8';
 
 // ── Sync indicator ────────────────────────────────────────
 export function setSyncStatus(status) {
@@ -13,7 +14,7 @@ export function setSyncStatus(status) {
 }
 
 // ── Online CRUD ───────────────────────────────────────────
-export async function fetchOnlineItems() {
+export async function fetchOnlineItems(onItems) {
   setSyncStatus('syncing');
   const { data, error } = await supabaseClient
     .from('punch_items')
@@ -21,8 +22,7 @@ export async function fetchOnlineItems() {
     .order('created_at', { ascending: false });
   if (error) throw error;
 
-  setSyncStatus('online');
-  return Promise.all(data.map(async item => ({
+  const items = data.map(item => ({
     id:              item.id,
     desc:            item.description,
     location:        item.location,
@@ -32,11 +32,24 @@ export async function fetchOnlineItems() {
     inspectionDate:  item.inspection_date,
     inspectionPhotoPath: item.inspection_photo_path,
     closeoutPhotoPath:   item.closeout_photo_path,
-    inspectionPhoto: await getImageUrl(item.inspection_photo_path, item.inspection_photo),
-    closeoutPhoto: await getImageUrl(item.closeout_photo_path, item.closeout_photo),
+    inspectionPhoto: item.inspection_photo || '',
+    closeoutPhoto: item.closeout_photo || '',
     createdAt:       item.created_at,
     closedAt:        item.closed_at,
-  })));
+  }));
+  if (onItems) onItems(items);
+  const paths = [...new Set(data.flatMap(item => [item.inspection_photo_path, item.closeout_photo_path]).filter(Boolean))];
+  if (paths.length) {
+    const { data: signed, error: photoError } = await supabaseClient.storage.from(STORAGE_BUCKET).createSignedUrls(paths, 3600);
+    if (photoError) throw new Error('Items loaded, but photos could not load. Refresh to retry.');
+    const urls = new Map((signed || []).filter(entry => entry.signedUrl).map(entry => [entry.path, entry.signedUrl]));
+    for (const item of items) {
+      item.inspectionPhoto = urls.get(item.inspectionPhotoPath) || item.inspectionPhoto;
+      item.closeoutPhoto = urls.get(item.closeoutPhotoPath) || item.closeoutPhoto;
+    }
+  }
+  setSyncStatus('online');
+  return items;
 }
 
 export async function addOnlineItem(itemData, file) {
