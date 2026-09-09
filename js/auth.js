@@ -39,7 +39,7 @@ export async function loginOnline(password, actorName) {
 
 export async function logout() {
   if (state.realtimeChannel) supabaseClient.removeChannel(state.realtimeChannel);
-  await supabaseClient.auth.signOut();
+    await supabaseClient.auth.signOut({ scope: 'local' });
 
   state.currentMode = 'offline';
   rememberMode('');
