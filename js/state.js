@@ -4,6 +4,9 @@
 // are always visible across the module graph.
 // ============================================================
 
+const FILTER_KEY = 'tsdci_current_filter';
+const VALID_FILTERS = new Set(['all', 'OPEN', 'IN PROGRESS', 'FOR VERIFICATION', 'CLOSED', 'VOIDED']);
+
 export const state = {
   currentMode:     'offline', // 'online' | 'offline'
   punchItems:      [],
@@ -26,8 +29,7 @@ export function restoreActorName() {
   try { return localStorage.getItem('tsdci_actor_name') || ''; } catch (_) { return ''; }
 }
 
-const FILTER_KEY = 'tsdci_current_filter';
-const VALID_FILTERS = new Set(['all', 'OPEN', 'IN PROGRESS', 'FOR VERIFICATION', 'CLOSED', 'VOIDED']);
+
 
 export function restoreFilter() {
   try {
