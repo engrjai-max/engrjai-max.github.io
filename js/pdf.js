@@ -2,9 +2,9 @@
 // pdf.js — PDF generation (preview + download via html2pdf)
 // ============================================================
 
-import { LOGO_URL } from './config.js?v=6';
-import { state } from './state.js?v=6';
-import { formatDate, escapeHtml } from './render.js?v=7';
+import { LOGO_URL } from './config.js?v=8';
+import { state } from './state.js?v=8';
+import { formatDate, escapeHtml } from './render.js?v=8';
 
 // Each row holds two ~70px-tall photos, so 12 rows (the old value) is far
 // taller than one A4-landscape page can actually hold — that overflow was

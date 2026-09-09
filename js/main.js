@@ -2,13 +2,15 @@
 // main.js — App entry point: event listeners & filter chips
 // ============================================================
 
-import { state } from './state.js?v=7';
-import { loginOnline, logout, startOfflineMode } from './auth.js?v=7';
-import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, showToast, selectAllToggle, deleteSelected, openEditSheet, closeEdit, saveEdit, confirmMassDelete, closeMassDelete } from './ui.js?v=7';
-import { createNewItem } from './items.js?v=7';
-import { previewPDF, downloadPDF } from './pdf.js?v=7';
-import { downloadDOCX } from './docx-export.js?v=7';
-import { refreshData } from './render.js?v=7';
+import { state, setCurrentFilter } from './state.js?v=8';
+import { loginOnline, logout, startOfflineMode, restorePersistedSession } from './auth.js?v=8';
+import { openAdd, closeAdd, openExportSheet, closeExport, closePreviewModal, selectAllToggle, deleteSelected, openEditSheet, closeEdit, saveEdit, confirmMassDelete, closeMassDelete, openAuditLog, closeAuditLog } from './ui.js?v=8';
+import { createNewItem } from './items.js?v=8';
+import { previewPDF, downloadPDF } from './pdf.js?v=8';
+import { downloadDOCX } from './docx-export.js?v=8';
+import { renderAll } from './render.js?v=8';
+
+restorePersistedSession();
 
 // ── Auth ──────────────────────────────────────────────────
 document.getElementById('online-login-btn').onclick = async () => {
@@ -19,6 +21,9 @@ document.getElementById('online-login-btn').onclick = async () => {
 
 document.getElementById('offline-mode-btn').onclick = () => startOfflineMode(document.getElementById('login-name').value);
 document.getElementById('logoutBtn').onclick         = () => logout();
+document.getElementById('auditLogBtn').onclick       = openAuditLog;
+document.getElementById('audit-backdrop').addEventListener('click', closeAuditLog);
+document.getElementById('closeAuditBtn').onclick = closeAuditLog;
 
 // ── Add item ──────────────────────────────────────────────
 document.getElementById('addFab').onclick     = openAdd;
@@ -62,11 +67,12 @@ document.getElementById('edit-backdrop').addEventListener('click', closeEdit);
 
 // ── Filter chips ──────────────────────────────────────────
 document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.classList.toggle('active', chip.dataset.filter === state.currentFilter);
   chip.addEventListener('click', () => {
-    state.currentFilter = chip.dataset.filter;
+    setCurrentFilter(chip.dataset.filter);
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
     state.selectedSet.clear();
-    refreshData();
+    renderAll();
   });
 });

@@ -2,12 +2,12 @@
 // auth.js — Login (online), logout, offline mode entry
 // ============================================================
 
-import { supabaseClient } from './storage.js?v=6';
-import { SHARED_EMAIL } from './config.js?v=6';
-import { state, setActorName, restoreActorName } from './state.js?v=6';
-import { setSyncStatus, fetchOnlineItems, subscribeToRealtime, getOfflineItems } from './database.js?v=6';
-import { renderAll } from './render.js?v=7';
-import { showToast } from './ui.js?v=6';
+import { supabaseClient } from './storage.js?v=8';
+import { SHARED_EMAIL } from './config.js?v=8';
+import { state, setActorName, restoreActorName, rememberMode, restoreMode } from './state.js?v=8';
+import { setSyncStatus, fetchOnlineItems, subscribeToRealtime, getOfflineItems } from './database.js?v=8';
+import { renderAll } from './render.js?v=8';
+import { showToast } from './ui.js?v=8';
 
 export async function loginOnline(password, actorName) {
   const errEl = document.getElementById('gate-err');
@@ -23,6 +23,7 @@ export async function loginOnline(password, actorName) {
     if (error) throw new Error(error.message);
 
     state.currentMode = 'online';
+    rememberMode('online');
     await loadOnlineDataAndRender();
     subscribeToRealtime(() => loadOnlineDataAndRender());
 
@@ -41,6 +42,7 @@ export async function logout() {
   await supabaseClient.auth.signOut();
 
   state.currentMode = 'offline';
+  rememberMode('');
   state.punchItems  = [];
   state.selectedSet.clear();
 
@@ -62,6 +64,7 @@ export async function startOfflineMode(actorName) {
   try {
     setActorName(actorName);
     state.currentMode = 'offline';
+    rememberMode('offline');
     state.punchItems  = await getOfflineItems();
     renderAll();
 
@@ -78,6 +81,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const name = document.getElementById('login-name');
   if (name) name.value = restoreActorName();
 });
+
+export async function restorePersistedSession() {
+  const actorName = restoreActorName();
+  if (!actorName) return false;
+
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (!error && data?.session && restoreMode() !== 'offline') {
+    setActorName(actorName);
+    state.currentMode = 'online';
+    await loadOnlineDataAndRender();
+    subscribeToRealtime(() => loadOnlineDataAndRender());
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    setSyncStatus('online');
+    return true;
+  }
+
+  if (restoreMode() === 'offline') {
+    await startOfflineMode(actorName);
+    return true;
+  }
+  return false;
+}
 
 export async function loadOnlineDataAndRender() {
   try {

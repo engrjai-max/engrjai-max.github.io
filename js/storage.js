@@ -3,7 +3,7 @@
 // ============================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET } from './config.js?v=6';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET } from './config.js?v=8';
 
 export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -76,3 +76,5 @@ const offlineDB = localforage.createInstance({ name: 'punchlist_offline_v2' });
 
 export async function getOfflineItems()      { return (await offlineDB.getItem('items')) || []; }
 export async function saveOfflineItems(items) { await offlineDB.setItem('items', items); }
+export async function getOfflineAudit()       { return (await offlineDB.getItem('audit')) || []; }
+export async function saveOfflineAudit(entries) { await offlineDB.setItem('audit', entries); }

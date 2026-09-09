@@ -387,3 +387,12 @@ input, select, textarea {
 
 /* ── Empty state ── */
 .empty { text-align: center; padding: 40px; color: var(--text2); }
+
+/* ── Change log ── */
+.audit-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.audit-title-row .sheet-title { margin-bottom: 0; }
+.audit-entry { border-bottom: 1px solid var(--border); padding: 12px 2px; font-size: 13px; }
+.audit-entry-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.audit-entry-head time { color: var(--text2); font-size: 11px; white-space: nowrap; }
+.audit-action { display: inline-block; text-transform: capitalize; font-weight: 600; color: var(--accent); margin-right: 4px; }
+.audit-fields { color: var(--text2); font-size: 11px; margin-top: 4px; }

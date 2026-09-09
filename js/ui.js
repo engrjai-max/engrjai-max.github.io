@@ -2,11 +2,12 @@
 // ui.js — Toast, sheet controls, select-all, delete selected
 // ============================================================
 
-import { state, getLastInspectionDate, todayISO } from './state.js?v=6';
-import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=6';
-import { loadOnlineDataAndRender } from './auth.js?v=6';
-import { verifyCurrentUserPassword } from './auth.js?v=6';
-import { renderAll, updateSelectAllUI, refreshData } from './render.js?v=7';
+import { state, getLastInspectionDate, todayISO } from './state.js?v=8';
+import { deleteOnlineItems, deleteOfflineItems, getOfflineItems, updateOnlineItem, updateOfflineItem } from './database.js?v=8';
+import { loadOnlineDataAndRender } from './auth.js?v=8';
+import { verifyCurrentUserPassword } from './auth.js?v=8';
+import { renderAll, updateSelectAllUI, refreshData, escapeHtml } from './render.js?v=8';
+import { fetchAuditEntries } from './audit.js?v=8';
 
 // Safe DOM helpers — never throw if an element is missing (e.g. stale cached HTML)
 function $(id) { return document.getElementById(id); }
@@ -185,6 +186,45 @@ export function closeMassDelete() {
   $('mass-delete-backdrop').classList.remove('open');
   $('mass-delete-sheet').classList.remove('open');
   $('mass-delete-password').value = '';
+}
+
+// ── Change log ───────────────────────────────────────────
+export async function openAuditLog() {
+  const list = $('audit-list');
+  $('audit-backdrop').classList.add('open');
+  $('audit-sheet').classList.add('open');
+  list.innerHTML = '<div class="empty">Loading change log…</div>';
+  try {
+    const entries = await fetchAuditEntries();
+    if (!entries.length) {
+      list.innerHTML = '<div class="empty">No changes have been recorded yet.</div>';
+      return;
+    }
+    list.innerHTML = entries.map(entry => {
+      const details = entry.details || {};
+      const description = details.description || (details.descriptions || []).join(', ') || `Item ${entry.item_id || ''}`;
+      const changes = Object.entries(details.changes || {}).map(([field, values]) => {
+        const readableField = field.replaceAll('_', ' ');
+        if (/photo|path/i.test(field)) return readableField;
+        const before = values?.from ?? '—';
+        const after = values?.to ?? '—';
+        return `${readableField}: ${before} → ${after}`;
+      });
+      const action = String(entry.action || 'update').replaceAll('_', ' ');
+      return `<article class="audit-entry">
+        <div class="audit-entry-head"><strong>${escapeHtml(entry.actor_name || 'Unknown user')}</strong><time>${escapeHtml(new Date(entry.created_at).toLocaleString('en-PH'))}</time></div>
+        <div><span class="audit-action">${escapeHtml(action)}</span> ${escapeHtml(description)}</div>
+        ${changes.length ? `<div class="audit-fields">${escapeHtml(changes.join(' · '))}</div>` : ''}
+      </article>`;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<div class="empty">Could not load the change log: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+export function closeAuditLog() {
+  $('audit-backdrop').classList.remove('open');
+  $('audit-sheet').classList.remove('open');
 }
 
 async function performDelete(ids) {

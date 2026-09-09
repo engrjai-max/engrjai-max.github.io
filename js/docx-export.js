@@ -4,8 +4,8 @@
 // with FileSaver.js providing `saveAs`)
 // ============================================================
 
-import { state } from './state.js?v=6';
-import { formatDate } from './render.js?v=7';
+import { state } from './state.js?v=8';
+import { formatDate } from './render.js?v=8';
 
 const MAX_IMG_WIDTH = 140; // px, matches roughly the PDF's max-height:70px photos
 

@@ -2,9 +2,9 @@
 // database.js — Supabase CRUD, offline CRUD, realtime
 // ============================================================
 
-import { supabaseClient, uploadImage, deleteImage, getImageUrl, getOfflineItems, saveOfflineItems } from './storage.js?v=6';
-import { state } from './state.js?v=6';
-import { recordAudit } from './audit.js?v=6';
+import { supabaseClient, uploadImage, deleteImage, getImageUrl, getOfflineItems, saveOfflineItems } from './storage.js?v=8';
+import { state } from './state.js?v=8';
+import { recordAudit } from './audit.js?v=8';
 
 // ── Sync indicator ────────────────────────────────────────
 export function setSyncStatus(status) {
@@ -86,6 +86,7 @@ export async function addOnlineItem(itemData, file) {
 }
 
 export async function updateOnlineItem(id, updates) {
+  const existing = state.punchItems.find(item => String(item.id) === String(id));
   const { data, error } = await supabaseClient
     .from('punch_items')
     .update(updates)
@@ -103,7 +104,18 @@ export async function updateOnlineItem(id, updates) {
       `is blocking changes to one of these columns: ${Object.keys(updates).join(', ')}.`
     );
   }
-  await recordAudit(updates.closeout_photo_path ? 'upload_closeout' : 'update', id, { fields: Object.keys(updates) });
+  const changes = Object.fromEntries(Object.entries(updates).map(([field, value]) => [field, {
+    from: existing ? (existing[field] ?? existing[{
+      description: 'desc', inspection_date: 'inspectionDate', closeout_photo: 'closeoutPhoto',
+      closeout_photo_path: 'closeoutPhotoPath', inspection_photo: 'inspectionPhoto',
+      inspection_photo_path: 'inspectionPhotoPath', closed_at: 'closedAt',
+    }[field]]) : null,
+    to: value,
+  }]));
+  await recordAudit(updates.closeout_photo_path ? 'upload_closeout' : 'update', id, {
+    description: existing?.desc || data[0].description || '',
+    changes,
+  });
   return data[0];
 }
 
@@ -127,7 +139,11 @@ export async function deleteOnlineItems(ids, itemsList) {
     console.warn(`Only ${data.length} of ${ids.length} selected items were actually deleted in Supabase.`);
   }
   await Promise.all(selected.flatMap(item => [item.inspectionPhotoPath, item.closeoutPhotoPath]).filter(Boolean).map(deleteImage));
-  await recordAudit(ids.length > 5 ? 'mass_delete' : 'delete', null, { itemIds: ids, count: ids.length });
+  await recordAudit(ids.length > 5 ? 'mass_delete' : 'delete', null, {
+    itemIds: ids,
+    count: ids.length,
+    descriptions: selected.map(item => item.desc),
+  });
 }
 
 // ── Offline CRUD ──────────────────────────────────────────
@@ -149,6 +165,7 @@ export async function addOfflineItem(itemData, base64Image) {
   };
   items.unshift(newItem);
   await saveOfflineItems(items);
+  await recordAudit('create', newId, { description: newItem.desc, location: newItem.location });
   return newItem;
 }
 
@@ -156,14 +173,23 @@ export async function updateOfflineItem(id, updates) {
   const items = await getOfflineItems();
   const idx   = items.findIndex(i => i.id === id);
   if (idx !== -1) {
+    const previous = items[idx];
+    const changes = Object.fromEntries(Object.entries(updates).map(([field, value]) => [field, { from: previous[field], to: value }]));
     items[idx] = { ...items[idx], ...updates };
     await saveOfflineItems(items);
+    await recordAudit('update', id, { description: items[idx].desc, changes });
   }
 }
 
 export async function deleteOfflineItems(ids) {
-  const items = (await getOfflineItems()).filter(i => !ids.includes(i.id));
-  await saveOfflineItems(items);
+  const allItems = await getOfflineItems();
+  const removed = allItems.filter(i => ids.includes(i.id));
+  await saveOfflineItems(allItems.filter(i => !ids.includes(i.id)));
+  await recordAudit(ids.length > 5 ? 'mass_delete' : 'delete', null, {
+    itemIds: ids,
+    count: ids.length,
+    descriptions: removed.map(i => i.desc),
+  });
 }
 
 // ── Realtime subscription ─────────────────────────────────
