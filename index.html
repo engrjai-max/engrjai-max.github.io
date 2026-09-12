@@ -189,7 +189,7 @@
   <div class="sheet-backdrop" id="exp-backdrop"></div>
   <div class="sheet" id="exp-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">📄 Export to PDF</div>
+    <div class="sheet-title">📄 Print / Export</div>
     <div class="field">
       <label>Project name</label>
       <input type="text" id="exp-proj" value="A Proposed 2-Unit 3-Storey Dormitory Building">
@@ -202,6 +202,17 @@
       <label>📅 Inspection Date *</label>
       <input type="date" id="exp-date" required>
     </div>
+    <fieldset style="border:1px solid var(--border);border-radius:8px;padding:12px;margin:0 0 16px">
+      <legend>Statuses to print / export</legend>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">
+        <label><input type="checkbox" name="export-status" value="OPEN" checked> Open</label>
+        <label><input type="checkbox" name="export-status" value="FOR VERIFICATION" checked> For Verification</label>
+        <label><input type="checkbox" name="export-status" value="CLOSED" checked> Closed-out</label>
+        <label><input type="checkbox" name="export-status" value="IN PROGRESS"> In Progress</label>
+        <label><input type="checkbox" name="export-status" value="VOIDED"> Voided</label>
+      </div>
+      <p style="font-size:12px;margin:10px 0 0">Choose any combination. PDF and Word include only these statuses, keeping permanent item numbers.</p>
+    </fieldset>
     <button class="export-btn" id="previewPdfBtn">Preview &amp; Export PDF</button>
     <button class="export-btn" id="exportDocxBtn" style="margin-top:8px;background:var(--surface2);color:var(--text)">📝 Export as Word (.docx)</button>
   </div>
@@ -220,6 +231,15 @@
 </div><!-- /#main-app -->
 
 <!-- App entry point (ES module) -->
+<script type="importmap">
+{"imports":{
+  "./js/render.js?v=8":"./js/render.js?v=9",
+  "./js/database.js?v=8":"./js/database.js?v=9",
+  "./js/storage.js?v=8":"./js/storage.js?v=9",
+  "./js/pdf.js?v=8":"./js/pdf.js?v=9",
+  "./js/docx-export.js?v=8":"./js/docx-export.js?v=9"
+}}
+</script>
 <script type="module" src="js/main.js?v=8"></script>
 
 </body>
