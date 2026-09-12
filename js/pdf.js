@@ -4,7 +4,7 @@
 
 import { LOGO_URL } from './config.js?v=8';
 import { state } from './state.js?v=8';
-import { formatDate, escapeHtml } from './render.js?v=8';
+import { formatDate, escapeHtml, formatItemNumber, getExportItems } from './render.js?v=8';
 
 // Each row holds two ~70px-tall photos, so 12 rows (the old value) is far
 // taller than one A4-landscape page can actually hold — that overflow was
@@ -29,9 +29,9 @@ export function generatePDFHTML(itemsToExport, inspDate, projName, projLoc) {
         : '<span>No Image</span>';
 
       rows += `<tr>
-        <td style="width:3%">${i + idx + 1}</td>
+        <td style="width:7%;overflow-wrap:anywhere">${formatItemNumber(it)}</td>
         <td style="width:14%">${escapeHtml(it.location)}</td>
-        <td style="width:18%">${escapeHtml(it.desc)}</td>
+        <td style="width:14%">${escapeHtml(it.desc)}</td>
         <td style="width:4%">${it.priority}</td>
         <td style="width:16%">${inspImg}</td>
         <td style="width:16%">${closeImg}</td>
@@ -77,7 +77,9 @@ export function previewPDF() {
 
   const projName = document.getElementById('exp-proj').value;
   const projLoc  = document.getElementById('exp-loc').value;
-  const html     = generatePDFHTML(state.punchItems, inspDate, projName, projLoc);
+  const items = getExportItems();
+  if (!items || !items.length) return;
+  const html     = generatePDFHTML(items, inspDate, projName, projLoc);
 
   document.getElementById('pdf-content').innerHTML = html;
   document.getElementById('preview-modal').classList.add('open');
