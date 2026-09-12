@@ -24,6 +24,7 @@ export async function fetchOnlineItems(onItems) {
 
   const items = data.map(item => ({
     id:              item.id,
+    itemNumber:      item.item_number,
     desc:            item.description,
     location:        item.location,
     priority:        item.priority,
@@ -83,6 +84,7 @@ export async function addOnlineItem(itemData, file) {
   await recordAudit('create', data.id, { description: data.description, location: data.location });
   return {
     id:              data.id,
+    itemNumber:      data.item_number,
     desc:            data.description,
     location:        data.location,
     priority:        data.priority,
