@@ -13,6 +13,23 @@ export function formatDate(ts) {
   return ts ? new Date(ts).toLocaleDateString('en-PH') : '—';
 }
 
+export function formatItemNumber(item) {
+  const number = String(item.itemNumber ?? '');
+  return /^[1-9][0-9]*$/.test(number)
+    ? `${String(item.id).startsWith('off_') ? 'LOCAL' : 'PL'}-${number.padStart(4, '0')}`
+    : 'Number pending';
+}
+
+export function getExportItems() {
+  const controls = [...document.querySelectorAll('input[name="export-status"]')];
+  if (!controls.length) return state.punchItems;
+  const statuses = new Set(controls.filter(cb => cb.checked).map(cb => cb.value));
+  if (!statuses.size) { alert('Select at least one status to print/export.'); return null; }
+  const items = state.punchItems.filter(item => statuses.has(item.status));
+  if (!items.length) { alert('No items match the selected statuses.'); return null; }
+  return items;
+}
+
 export function escapeHtml(str) {
   return String(str || '').replace(/[&<>]/g, m =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]
@@ -76,7 +93,7 @@ export function renderAll() {
       <div class="item-row">
         <div class="item-check"><input type="checkbox" data-id="${item.id}" ${isChecked ? 'checked' : ''}></div>
         <div class="item-details">
-          <div class="item-desc">${escapeHtml(item.desc)}</div>
+          <div class="item-desc"><span class="badge badge-gray">${formatItemNumber(item)}</span> ${escapeHtml(item.desc)}</div>
           <div class="item-meta">
             <span class="badge badge-gray">📍 ${escapeHtml(item.location)}</span>
             <span class="badge ${priClass}">⚠️ ${priLabel}</span>
