@@ -5,7 +5,7 @@
 // ============================================================
 
 import { state } from './state.js?v=8';
-import { formatDate } from './render.js?v=8';
+import { formatDate, formatItemNumber, getExportItems } from './render.js?v=8';
 
 const MAX_IMG_WIDTH = 140; // px, matches roughly the PDF's max-height:70px photos
 
@@ -89,7 +89,8 @@ export async function downloadDOCX() {
   const inspDate = document.getElementById('exp-date').value;
   if (!inspDate) { alert('Select inspection date'); return; }
 
-  const items = state.punchItems;
+  const items = getExportItems();
+  if (!items) return;
   if (!items.length) { alert('No items to export.'); return; }
 
   const btn = document.getElementById('exportDocxBtn');
@@ -98,7 +99,7 @@ export async function downloadDOCX() {
   btn.innerText = 'Building document… (0%)';
 
   try {
-    const COLW = { num: 4, loc: 11, desc: 15, pri: 5, status: 8, idate: 8, cdate: 8, insp: 13, close: 13, rem: 15 };
+    const COLW = { num: 8, loc: 11, desc: 11, pri: 5, status: 8, idate: 8, cdate: 8, insp: 13, close: 13, rem: 15 };
 
     const headerRow = new docx.TableRow({
       tableHeader: true,
@@ -126,7 +127,7 @@ export async function downloadDOCX() {
       ]);
       rows.push(new docx.TableRow({
         children: [
-          textCell(idx + 1,                                            { width: COLW.num }),
+          textCell(formatItemNumber(it),                                            { width: COLW.num }),
           textCell(it.location,                                        { width: COLW.loc }),
           textCell(it.desc,                                            { width: COLW.desc }),
           textCell(it.priority,                                        { width: COLW.pri }),
