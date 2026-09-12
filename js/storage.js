@@ -74,7 +74,26 @@ export async function deleteImage(path) {
 // ── Offline store (localforage) ───────────────────────────
 const offlineDB = localforage.createInstance({ name: 'punchlist_offline_v2' });
 
-export async function getOfflineItems()      { return (await offlineDB.getItem('items')) || []; }
-export async function saveOfflineItems(items) { await offlineDB.setItem('items', items); }
+// Offline records have a separate, device-local number sequence.
+// Keep its high-water mark even when the last record is deleted.
+async function numberOfflineItems(items) {
+  let next = Number(await offlineDB.getItem('itemNumberHighWater')) || 0;
+  for (const item of items) next = Math.max(next, Number(item.itemNumber) || 0);
+  for (const item of [...items].sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)) || a.id.localeCompare(b.id))) {
+    if (!item.itemNumber) item.itemNumber = ++next;
+  }
+  await offlineDB.setItem('itemNumberHighWater', next);
+  await offlineDB.setItem('items', items);
+  return items;
+}
+function withOfflineNumberLock(action) {
+  return navigator.locks.request('punchlist-offline-numbers', action);
+}
+export async function getOfflineItems() {
+  return withOfflineNumberLock(async () => numberOfflineItems((await offlineDB.getItem('items')) || []));
+}
+export async function saveOfflineItems(items) {
+  return withOfflineNumberLock(() => numberOfflineItems(items));
+}
 export async function getOfflineAudit()       { return (await offlineDB.getItem('audit')) || []; }
 export async function saveOfflineAudit(entries) { await offlineDB.setItem('audit', entries); }
